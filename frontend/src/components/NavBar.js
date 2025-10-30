@@ -650,7 +650,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/"); // Redirect to guest home after logout
+    navigate("/");
   };
 
   // Determine the home link based on user type
@@ -815,7 +815,7 @@ const Navbar = () => {
 
             {(utype === "admin" || utype === "user") && (
               <li className="nav-item">
-                <button onClick={handleLogout} className="btn btn-link nav-link text-light">
+                <button onClick={() => { if (window.confirm('Are you sure you want to logout?')) handleLogout()}} className="btn btn-link nav-link text-light">
                   Logout
                 </button>
               </li>
