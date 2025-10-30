@@ -19,6 +19,7 @@ import UserHome from './components/UserHome.js';
 import AboutUsPage from './components/AboutUsPage.js';
 import ContactUsPage from './components/ContactUsPage.js';
 import AdminOrders from './components/AdminOrders.js';
+import UserCart from './components/UserCart.js';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
             <Route path='/aboutus' element={<AboutUsPage />} />
             <Route path='/contactus' element={<ContactUsPage />} />
             <Route path='/orders' element={<AdminOrders />} />
+            <Route path='/usercart' element={<UserCart />} />
           </Routes>
         </div>
         <Footer />

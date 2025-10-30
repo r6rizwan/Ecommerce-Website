@@ -781,7 +781,7 @@ const Navbar = () => {
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to="/cart" className="nav-link">
+                  <NavLink to="/usercart" className="nav-link">
                     My Cart
                   </NavLink>
                 </li>
