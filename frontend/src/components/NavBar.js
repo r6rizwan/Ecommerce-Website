@@ -815,7 +815,7 @@ const Navbar = () => {
 
             {(utype === "admin" || utype === "user") && (
               <li className="nav-item">
-                <button onClick={() => { if (window.confirm('Are you sure you want to logout?')) handleLogout()}} className="btn btn-link nav-link text-light">
+                <button onClick={handleLogout} className="btn btn-link nav-link text-light">
                   Logout
                 </button>
               </li>
