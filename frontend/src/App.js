@@ -20,6 +20,9 @@ import AboutUsPage from './components/AboutUsPage.js';
 import ContactUsPage from './components/ContactUsPage.js';
 import AdminOrders from './components/AdminOrders.js';
 import UserCart from './components/UserCart.js';
+import ForgotPassword from './components/ForgotPassword.js';
+import OtpScreen from './components/OtpScreen.js';
+import ResetPassword from './components/ResetPassword.js';
 
 function App() {
   return (
@@ -44,6 +47,9 @@ function App() {
             <Route path='/contactus' element={<ContactUsPage />} />
             <Route path='/orders' element={<AdminOrders />} />
             <Route path='/usercart' element={<UserCart />} />
+            <Route path='/forgotpassword' element={<ForgotPassword />} />
+            <Route path='/otpscreen' element={<OtpScreen />} />
+            <Route path='/resetpassword' element={<ResetPassword />}/>
           </Routes>
         </div>
         <Footer />

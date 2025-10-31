@@ -116,6 +116,18 @@ const NewLogin = () => {
             </span>
           </small>
         </div>
+
+        <div className="text-center mt-3">
+          <small>
+            <span
+              className="text-primary"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/forgotpassword")}
+            >
+              Forgot Password?
+            </span>
+          </small>
+        </div>
       </div>
     </div>
   );

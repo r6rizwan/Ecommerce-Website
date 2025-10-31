@@ -53,9 +53,9 @@ const ProductView = () => {
                                 <td>{product.uom}</td>
                                 <td>{product.price}</td>
                                 <td>{product.stock}</td>
-                                <td>
-                                    <img src={product.image} alt={product.product_name} width="100" height="100"></img>
-                                </td>
+                                {/* //display image from uploads folder */}
+
+                                <td><img src={`http://localhost:3001/uploads/${product.image}`} alt={product.product_name} width="150" height="150"/></td>
                                 <td>{product.description}</td>
                                 <td> <i className='fa fa-trash text-danger' onClick={() => { if (window.confirm('Are you sure you want to delete this product?')) DeleteReg(product.id); }}></i></td>
                             </tr>

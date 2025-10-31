@@ -11,9 +11,14 @@ const ProductAddPage = () => {
         uom: '',
         price: '',
         stock: '',
-        image: null,
         description: ''
     });
+
+    const [imageFile, setImageFile] = useState(null);
+
+    const ImageFile = (e) => {
+        setImageFile(e.target.files[0]);
+    }
 
     const handleChange = (e) => {
         setFormData({
@@ -27,13 +32,40 @@ const ProductAddPage = () => {
         // Handle form submission logic here
         try {
             console.log("Product Added:", formData);
+            // Prepare form data for upload (important for images)
+            const formDataToSend = new FormData();
+            Object.entries(formData).forEach(([key, value]) => {
+                formDataToSend.append(key, value);
+            });
+            if (imageFile) {
+                formDataToSend.append('image', imageFile);
+            }  
+            // Send POST request to backend
+            const response = await axios.post(
+                "http://localhost:3001/api/addProduct",
+                formDataToSend,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                }
+            );
 
-            const response = await axios.post('http://localhost:3001/api/addProduct', formData);
             if (response.status === 200) {
-                alert("Product added successfully!");
-                navigate('/productview');
+                alert("✅ Product added successfully!");
+                // Reset form
+                setFormData({
+                    categoryName: '',
+                    productName: '',
+                    quantity: '',
+                    uom: '',
+                    price: '',
+                    stock: '',
+                    description: ''
+                });
+                setImageFile(null);
+                // Navigate to product view page
+                navigate("/productview");
             } else {
-                alert("Failed to add product. Please try again.");
+                alert("⚠️ Failed to add product. Please try again.");
             }
 
         } catch (error) {
@@ -159,7 +191,7 @@ const ProductAddPage = () => {
                             className="form-control"
                             id="image"
                             name="image"
-                            accept="image/*"
+                            accept="image/*" onChange={ImageFile}
                         />
                     </div>
 

@@ -3,6 +3,11 @@ const express = require('express');
 const app = express();
 const port = 3001
 const mysql = require('mysql');
+const multer = require('multer');
+const path = require('path');
+
+// access images from uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const conn = mysql.createConnection({
     host: 'localhost',
@@ -28,9 +33,9 @@ app.get('/', (req, res) => {
     res.send('Hello from Backend');
 })
 
-
 app.use(express.json());
 const cors = require('cors');
+const { dir } = require('console');
 app.use(cors());
 
 app.post('/api/register', (req, res) => {
@@ -103,8 +108,22 @@ app.post('/api/feedback', (req, res) => {
     });
 });
 
-app.post('/api/addProduct', (req, res) => {
-    const { categoryName, productName, quantity, uom, price, stock, image, description } = req.body;
+//upload product image
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// Add product with image upload
+app.post('/api/addProduct', upload.single('image'), (req, res) => {
+    const { categoryName, productName, quantity, uom, price, stock, description } = req.body;
+    const image = req.file ? req.file.filename : null;
 
     const sqlInsertProduct = `
         INSERT INTO product (category_name, product_name, qty, uom, price, stock, image, description)
@@ -121,6 +140,25 @@ app.post('/api/addProduct', (req, res) => {
         res.status(200).send("Product added successfully");
     });
 });
+
+// app.post('/api/addProduct', (req, res) => {
+//     const { categoryName, productName, quantity, uom, price, stock, image, description } = req.body;
+
+//     const sqlInsertProduct = `
+//         INSERT INTO product (category_name, product_name, qty, uom, price, stock, image, description)
+//         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+//     `;
+
+//     conn.query(sqlInsertProduct, [categoryName, productName, quantity, uom, price, stock, image, description], (err, result) => {
+//         if (err) {
+//             console.error("Error inserting into product:", err);
+//             return res.status(500).send("Error adding product");
+//         }
+
+//         console.log("Product added successfully:", productName);
+//         res.status(200).send("Product added successfully");
+//     });
+// });
 
 app.get('/api/getregister', (req, res) => {
     const sqlSelectRegister = `SELECT * FROM register`;
