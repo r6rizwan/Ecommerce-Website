@@ -106,7 +106,7 @@ const NewLogin = () => {
 
         <div className="text-center mt-3">
           <small>
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <span
               className="text-primary"
               style={{ cursor: "pointer" }}

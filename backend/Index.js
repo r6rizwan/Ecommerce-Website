@@ -5,6 +5,7 @@ const port = 3001
 const mysql = require('mysql');
 const multer = require('multer');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 // access images from uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -300,5 +301,78 @@ app.get('/api/orders', (req, res) => {
         }
 
         res.status(200).json({ orders: results });
+    });
+});
+
+//forgot password API
+app.post('/api/forgotpassword', (req, res) => {
+    const { email } = req.body;
+
+    // Here, you would typically generate an OTP and send it to the user's email.
+    // For simplicity, we'll just log the email and return a success response.
+
+    console.log("Password reset requested for email:", email);
+
+    // check if email exists in the database (optional)
+    const sqlCheckEmail = `SELECT * FROM login WHERE username = ?`;
+    conn.query(sqlCheckEmail, [email], (err, results) => {
+        if (err) {
+            console.error("Error checking email:", err);
+            return res.status(500).send("Error processing request");
+        }
+
+        if (results.length === 0) {
+            console.log("Email not found:", email);
+            return res.status(404).send("Email not found");
+        }
+
+        // proceed to send OTP
+
+        //generate otp - random number between 1000 and 9999
+        const otp = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+        
+
+        // Store OTP in database with expiry time (15 minutes from now)
+        // store OTP in the OTP table
+        const sqlStoreOTP = `INSERT INTO otp(otp,otp_expiry) VALUES
+            (?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))`;  
+        conn.query(sqlStoreOTP, [otp], (err, result) => {
+            if (err) {          
+                console.error("Error storing OTP:", err);
+                return res.status(500).send("Error processing request");
+            }
+
+            // Set up nodemailer transporter
+            let transporter = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: process.env.EMAIL_USER, // use environment variable
+                    pass: process.env.EMAIL_PASS  // use environment variable
+                }
+            });
+
+            let mailOptions = {
+                from: '"Ecommerce Support" <noreply@ecommerce.com>',
+                to: email,
+                subject: 'Password Reset OTP',
+                text: `Your OTP for password reset is ${otp}. This OTP will expire in 15 minutes.`,
+                html: `<p>Your OTP for password reset is <strong>${otp}</strong>.</p><p>This OTP will expire in 15 minutes.</p>`
+            };
+
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error("Error sending email:", error);
+                    return res.status(500).send("Error sending OTP email");
+                }
+                console.log('Message sent: %s', info.messageId);
+                res.status(200).json({
+                    success: true,
+                    message: "OTP sent successfully to your email"
+                });
+            });
+        });
     });
 });
