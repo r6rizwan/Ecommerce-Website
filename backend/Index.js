@@ -6,6 +6,7 @@ const mysql = require('mysql');
 const multer = require('multer');
 const path = require('path');
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 // access images from uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -308,12 +309,6 @@ app.get('/api/orders', (req, res) => {
 app.post('/api/forgotpassword', (req, res) => {
     const { email } = req.body;
 
-    // Here, you would typically generate an OTP and send it to the user's email.
-    // For simplicity, we'll just log the email and return a success response.
-
-    console.log("Password reset requested for email:", email);
-
-    // check if email exists in the database (optional)
     const sqlCheckEmail = `SELECT * FROM login WHERE username = ?`;
     conn.query(sqlCheckEmail, [email], (err, results) => {
         if (err) {
@@ -323,34 +318,29 @@ app.post('/api/forgotpassword', (req, res) => {
 
         if (results.length === 0) {
             console.log("Email not found:", email);
-            return res.status(404).send("Email not found");
+            return res.status(404).json({ success: false, message: "Email not found" });
         }
-
-        // proceed to send OTP
 
         //generate otp - random number between 1000 and 9999
         const otp = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
-        
-
         // Store OTP in database with expiry time (15 minutes from now)
-        // store OTP in the OTP table
-        const sqlStoreOTP = `INSERT INTO otp(otp,otp_expiry) VALUES
-            (?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))`;  
-        conn.query(sqlStoreOTP, [otp], (err, result) => {
-            if (err) {          
+        const sqlStoreOTP = `INSERT INTO otp(email, otp, otp_expiry) VALUES 
+        (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE)) ON DUPLICATE KEY UPDATE 
+        otp = VALUES(otp), otp_expiry = VALUES(otp_expiry)`;
+        conn.query(sqlStoreOTP, [email, otp], (err, result) => {
+            if (err) {
                 console.error("Error storing OTP:", err);
-                return res.status(500).send("Error processing request");
+                return res.status(500).json({ success: false, message: "Error sending OTP email" });
             }
 
-            // Set up nodemailer transporter
             let transporter = nodemailer.createTransport({
                 host: 'smtp.gmail.com',
                 port: 587,
                 secure: false,
                 auth: {
-                    user: process.env.EMAIL_USER, // use environment variable
-                    pass: process.env.EMAIL_PASS  // use environment variable
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
                 }
             });
 
@@ -373,6 +363,77 @@ app.post('/api/forgotpassword', (req, res) => {
                     message: "OTP sent successfully to your email"
                 });
             });
+        });
+    });
+});
+
+// verify OTP API
+app.post('/api/verifyotp', (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+        return res.status(400).json({ success: false, message: "Email and OTP required" });
+    }
+
+    const sqlVerifyOTP = `
+        SELECT * FROM otp 
+        WHERE email = ? AND otp = ? AND otp_expiry > NOW()
+        ORDER BY id DESC LIMIT 1
+    `;
+
+    conn.query(sqlVerifyOTP, [email, otp], (err, results) => {
+        if (err) {
+            console.error("Error verifying OTP:", err);
+            return res.status(500).json({ success: false, message: "Error verifying OTP" });
+        }
+
+        if (results.length === 0) {
+            return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+        }
+
+        console.log("OTP verified successfully for:", email);
+
+        // optional: delete OTP after successful verification
+        const sqlDelete = `DELETE FROM otp WHERE email = ?`;
+        conn.query(sqlDelete, [email], () => { });
+
+        return res.status(200).json({ success: true, message: "OTP verified successfully" });
+    });
+});
+
+// Password reset API
+app.post("/api/resetpassword", (req, res) => {
+    const { email, newPassword } = req.body;
+
+    // Validate input
+    if (!email || !newPassword) {
+        return res.status(400).json({
+            success: false,
+            message: "Email and new password are required",
+        });
+    }
+
+    // Update password directly in the database
+    const sql = `UPDATE login SET password = ? WHERE username = ?`;
+    conn.query(sql, [newPassword, email], (err, result) => {
+        if (err) {
+            console.error("Error updating password:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Error updating password",
+            });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Email not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully",
         });
     });
 });

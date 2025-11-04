@@ -49,7 +49,7 @@ function App() {
             <Route path='/usercart' element={<UserCart />} />
             <Route path='/forgotpassword' element={<ForgotPassword />} />
             <Route path='/otpscreen' element={<OtpScreen />} />
-            <Route path='/resetpassword' element={<ResetPassword />}/>
+            <Route path='/resetpassword' element={<ResetPassword />} />
           </Routes>
         </div>
         <Footer />
