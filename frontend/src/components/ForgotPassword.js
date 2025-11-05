@@ -92,11 +92,10 @@ const ForgotPassword = () => {
 
             {message && (
               <div
-                className={`alert mt-3 ${
-                  message.type === "success"
+                className={`alert mt-3 ${message.type === "success"
                     ? "alert-success"
                     : "alert-danger"
-                }`}
+                  }`}
                 role="alert"
               >
                 {message.text}

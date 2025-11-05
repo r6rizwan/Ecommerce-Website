@@ -34,6 +34,7 @@ const NewLogin = () => {
         // Save user info to localStorage
         localStorage.setItem("user", response.data.username);
         localStorage.setItem("utype", response.data.utype);
+        localStorage.setItem("userName", response.data.user)
 
         // Redirect based on user type
         if (response.data.utype === "admin") {

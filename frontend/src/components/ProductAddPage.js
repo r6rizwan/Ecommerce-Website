@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ProductAddPage = () => {
     const navigate = useNavigate();
+    const [CatData, setCatData] = useState([]);
+
     const [formData, setFormData] = useState({
         categoryName: '',
         productName: '',
@@ -19,6 +21,13 @@ const ProductAddPage = () => {
     const ImageFile = (e) => {
         setImageFile(e.target.files[0]);
     }
+
+    useEffect(() => {
+        fetch('http://localhost:3001/api/getcategory')
+            .then(response => response.json())
+            .then(data => setCatData(data))
+            .catch(error => console.error('Error fetching category data:', error));
+    }, []);
 
     const handleChange = (e) => {
         setFormData({
@@ -39,7 +48,7 @@ const ProductAddPage = () => {
             });
             if (imageFile) {
                 formDataToSend.append('image', imageFile);
-            }  
+            }
             // Send POST request to backend
             const response = await axios.post(
                 "http://localhost:3001/api/addProduct",
@@ -81,7 +90,7 @@ const ProductAddPage = () => {
 
                 <form onSubmit={handleSubmit}>
                     {/* Category Name */}
-                    <div className="mb-3">
+                    {/* <div className="mb-3">
                         <label htmlFor="categoryName" className="form-label">
                             Category Name
                         </label>
@@ -94,6 +103,29 @@ const ProductAddPage = () => {
                             required
                             value={formData.categoryName} onChange={handleChange}
                         />
+                    </div> */}
+                    
+                    <div className="mb-3">
+                        <label htmlFor="categoryName" className="form-label">
+                            Category Name
+                        </label>
+                        <select
+                            className="form-select"
+                            id="categoryName"
+                            name="categoryName"
+                            required
+                            value={formData.categoryName}
+                            onChange={handleChange}
+                        >
+                            <option value="" disabled>
+                                Select Category
+                            </option>
+                            {CatData.map((category, index) => (
+                                <div key={index}>
+                                    <option value={category.category_name}>{category.category_name}</option>
+                                </div>
+                            ))}
+                        </select>
                     </div>
 
                     {/* Product Name */}

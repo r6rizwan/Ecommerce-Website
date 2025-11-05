@@ -266,7 +266,7 @@ app.delete('/api/deletefeedback/:id', (req, res) => {
     });
 });
 
-
+// Auth Login API
 app.post('/api/authlogin', (req, res) => {
     const { username, password } = req.body;
 
@@ -279,13 +279,26 @@ app.post('/api/authlogin', (req, res) => {
         }
 
         if (results.length > 0) {
-            console.log("Login successful for user:", username);
-            res.status(200).json({
-                success: true,
-                message: "Login successful",
-                username: results[0].username,
-                utype: results[0].utype
+            const sqlSelectUserName = `SELECT name FROM register WHERE email = ?`;
+            conn.query(sqlSelectUserName, [username], (err, resUser) => {
+                if (err) {
+                    console.error("Error querying username:", err);
+                    return res.status(500).send("Error fetching user details");
+                }
+
+                const user_name = resUser.length > 0 ? resUser[0].name : '';
+
+                console.log("Login successful for user:", username);
+
+                res.status(200).json({
+                    success: true,
+                    message: "Login successful",
+                    username: results[0].username,
+                    utype: results[0].utype,
+                    user: user_name,
+                });
             });
+
         } else {
             console.log("Invalid credentials for user:", username);
             res.status(401).json({ success: false, message: "Invalid credentials" });
