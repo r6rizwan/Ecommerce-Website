@@ -18,9 +18,9 @@ const NewLogin = () => {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      setLoading(true);
       console.log("Login Attempt:", formData);
 
       const response = await axios.post("http://localhost:3001/api/authlogin", {
@@ -31,25 +31,25 @@ const NewLogin = () => {
       console.log("Server Response:", response.data);
 
       if (response.status === 200 && response.data.success) {
-        // Save user info to localStorage
-        localStorage.setItem("user", response.data.username);
+        // ✅ Store consistent keys
+        localStorage.setItem("userName", response.data.username);
         localStorage.setItem("utype", response.data.utype);
-        localStorage.setItem("userName", response.data.user)
+        localStorage.setItem("userID", response.data.user_id);
+        localStorage.setItem("isLoggedIn", "true");
 
-        // Redirect based on user type
-        if (response.data.utype === "admin") {
-          navigate("/adminhome");
-        } else {
-          navigate("/userhome");
-        }
+        // ✅ Notify app of login
+        window.dispatchEvent(new Event("app-storage"));
+
+        // ✅ Navigate to correct home page
+        navigate(response.data.utype === "admin" ? "/adminhome" : "/userhome");
       } else {
         alert(response.data.message || "Invalid credentials. Please try again.");
-        setFormData({ ...formData, password: "" }); // clear password field
+        setFormData((prev) => ({ ...prev, password: "" }));
       }
     } catch (error) {
       console.error("Login error:", error);
       alert("An error occurred during login. Please try again later.");
-      setFormData({ ...formData, password: "" });
+      setFormData((prev) => ({ ...prev, password: "" }));
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,6 @@ const NewLogin = () => {
         <h3 className="text-center mb-4 text-primary fw-bold">Login</h3>
 
         <form onSubmit={handleSubmit}>
-          {/* Username or Email */}
           <div className="mb-3">
             <label htmlFor="emailOrUsername" className="form-label">
               Username or Email
@@ -78,7 +77,6 @@ const NewLogin = () => {
             />
           </div>
 
-          {/* Password */}
           <div className="mb-3">
             <label htmlFor="password" className="form-label">
               Password
@@ -95,7 +93,6 @@ const NewLogin = () => {
             />
           </div>
 
-          {/* Login Button */}
           <button
             type="submit"
             className="btn btn-primary w-100"

@@ -267,44 +267,97 @@ app.delete('/api/deletefeedback/:id', (req, res) => {
 });
 
 // Auth Login API
+// app.post('/api/authlogin', (req, res) => {
+//     const { username, password } = req.body;
+
+//     const sqlSelectLogin = `SELECT * FROM login WHERE username = ? AND password = ?`;
+
+//     conn.query(sqlSelectLogin, [username, password], (err, results) => {
+//         if (err) {
+//             console.error("Error querying login:", err);
+//             return res.status(500).send("Error during login");
+//         }
+
+//         if (results.length > 0) {
+//             const sqlSelectUserName = `SELECT name FROM register WHERE email = ?`;
+//             conn.query(sqlSelectUserName, [username], (err, resUser) => {
+//                 if (err) {
+//                     console.error("Error querying username:", err);
+//                     return res.status(500).send("Error fetching user details");
+//                 }
+
+//                 const user_name = resUser.length > 0 ? resUser[0].name : '';
+
+//                 console.log("Login successful for user:", username);
+
+//                 res.status(200).json({
+//                     success: true,
+//                     message: "Login successful",
+//                     username: results[0].username,
+//                     utype: results[0].utype,
+//                     user: user_name,
+//                     user_id: results[0].id,
+//                 });
+//             });
+
+//         } else {
+//             console.log("Invalid credentials for user:", username);
+//             res.status(401).json({ success: false, message: "Invalid credentials" });
+//         }
+//     });
+// });
+
+// Auth Login API
 app.post('/api/authlogin', (req, res) => {
     const { username, password } = req.body;
 
+    // Step 1: Validate input
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: "Username and password are required" });
+    }
+
+    // Step 2: Check credentials
     const sqlSelectLogin = `SELECT * FROM login WHERE username = ? AND password = ?`;
 
     conn.query(sqlSelectLogin, [username, password], (err, results) => {
         if (err) {
             console.error("Error querying login:", err);
-            return res.status(500).send("Error during login");
+            return res.status(500).json({ success: false, message: "Database error during login" });
         }
 
-        if (results.length > 0) {
-            const sqlSelectUserName = `SELECT name FROM register WHERE email = ?`;
-            conn.query(sqlSelectUserName, [username], (err, resUser) => {
-                if (err) {
-                    console.error("Error querying username:", err);
-                    return res.status(500).send("Error fetching user details");
-                }
-
-                const user_name = resUser.length > 0 ? resUser[0].name : '';
-
-                console.log("Login successful for user:", username);
-
-                res.status(200).json({
-                    success: true,
-                    message: "Login successful",
-                    username: results[0].username,
-                    utype: results[0].utype,
-                    user: user_name,
-                });
-            });
-
-        } else {
+        if (results.length === 0) {
             console.log("Invalid credentials for user:", username);
-            res.status(401).json({ success: false, message: "Invalid credentials" });
+            return res.status(401).json({ success: false, message: "Invalid username or password" });
         }
+
+        const loginRow = results[0];
+
+        // Step 3: Fetch user's register record (id and name) so frontend gets the register.id
+        const sqlSelectRegister = `SELECT id, name FROM register WHERE email = ?`;
+        conn.query(sqlSelectRegister, [username], (errReg, regRows) => {
+            if (errReg) {
+                console.error("Error querying register:", errReg);
+                return res.status(500).json({ success: false, message: "Error fetching user details" });
+            }
+
+            const registerId = regRows.length > 0 ? regRows[0].id : null;
+            const fullName = regRows.length > 0 ? regRows[0].name : loginRow.username;
+
+            console.log("Login successful for user:", username, "(login id:", loginRow.id, ", register id:", registerId, ")");
+
+            // Step 4: Send clean JSON response
+            res.status(200).json({
+                success: true,
+                message: "Login successful",
+                username: fullName,
+                utype: loginRow.utype,
+                user_id: registerId || loginRow.id, // prefer register.id for FK relations
+                login_id: loginRow.id
+            });
+        });
     });
 });
+
 
 app.get('/api/orders', (req, res) => {
     const sqlSelectOrders = `SELECT * FROM customerOrders`;
@@ -317,6 +370,65 @@ app.get('/api/orders', (req, res) => {
         res.status(200).json({ orders: results });
     });
 });
+
+// GET user-specific orders (excluding cart/pending)
+app.get('/api/userorders/:user_id', (req, res) => {
+  const { user_id } = req.params;
+
+  const sql = `
+    SELECT 
+      co.id AS order_id,
+      co.pid,
+      p.product_name,
+      co.qty,
+      co.price,
+      co.total,
+      co.order_date,
+      co.order_status,
+      co.payment_status
+    FROM customerOrders co
+    JOIN product p ON co.pid = p.id
+    WHERE co.user_id = ? AND co.order_status != 'Pending'
+    ORDER BY co.order_date DESC
+  `;
+
+  conn.query(sql, [user_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching user orders:", err);
+      return res.status(500).json({ message: "Error fetching orders" });
+    }
+
+    if (results.length === 0) {
+      return res.status(200).json({ orders: [] });
+    }
+
+    // Group by order_id if multiple products in same order
+    const groupedOrders = {};
+    results.forEach(row => {
+      if (!groupedOrders[row.order_id]) {
+        groupedOrders[row.order_id] = {
+          id: row.order_id,
+          orderDate: row.order_date,
+          status: row.order_status,
+          paymentStatus: row.payment_status,
+          products: [],
+          totalAmount: 0,
+        };
+      }
+      groupedOrders[row.order_id].products.push({
+        name: row.product_name,
+        qty: row.qty,
+        price: parseFloat(row.price),
+        total: parseFloat(row.total),
+      });
+      groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
+    });
+
+    const orders = Object.values(groupedOrders);
+    res.status(200).json({ orders });
+  });
+});
+
 
 //forgot password API
 app.post('/api/forgotpassword', (req, res) => {
@@ -448,5 +560,154 @@ app.post("/api/resetpassword", (req, res) => {
             success: true,
             message: "Password reset successfully",
         });
+    });
+});
+
+// ADD TO CART API
+app.post('/api/addtocart/:pid', (req, res) => {
+    const { pid } = req.params;
+    const { user_id, qty } = req.body;
+    const quantity = qty ? qty : 1;
+
+    if (!user_id || !pid) {
+        return res.status(400).send("Missing required fields");
+    }
+    // Verify user exists to avoid foreign key constraint errors
+    const sqlCheckUser = `SELECT id FROM register WHERE id = ?`;
+    conn.query(sqlCheckUser, [user_id], (errUser, userRows) => {
+        if (errUser) {
+            console.error('Error checking user existence:', errUser);
+            return res.status(500).send('Database error while checking user');
+        }
+
+        if (userRows.length === 0) {
+            return res.status(404).send('User not found');
+        }
+
+        // Step 1: Get product details
+        const sqlGetProduct = "SELECT product_name, price FROM product WHERE id = ?";
+        conn.query(sqlGetProduct, [pid], (err, result) => {
+            if (err) {
+                console.error("Error fetching product:", err);
+                return res.status(500).send("Database error while fetching product");
+            }
+
+            if (result.length === 0) {
+                return res.status(404).send("Product not found");
+            }
+
+            const { product_name, price } = result[0];
+            const total = price * quantity;
+
+            // Step 2: Check if product already exists in the cart
+            const sqlCheckExisting = `
+                SELECT * FROM customerOrders 
+                WHERE user_id = ? AND pid = ? AND order_status = 'Pending'
+            `;
+            conn.query(sqlCheckExisting, [user_id, pid], (err2, rows) => {
+                if (err2) {
+                    console.error("Error checking cart:", err2);
+                    return res.status(500).send("Database error while checking cart");
+                }
+
+                if (rows.length > 0) {
+                    // Update quantity if already in cart
+                    const newQty = rows[0].qty + quantity;
+                    const newTotal = newQty * price;
+                    const sqlUpdate = `
+                        UPDATE customerOrders 
+                        SET qty = ?, total = ? 
+                        WHERE user_id = ? AND pid = ? AND order_status = 'Pending'
+                    `;
+                    conn.query(sqlUpdate, [newQty, newTotal, user_id, pid], (err3) => {
+                        if (err3) {
+                            console.error("Error updating cart:", err3);
+                            return res.status(500).send("Error updating cart item");
+                        }
+                        res.status(200).send("Cart item updated successfully");
+                    });
+                } else {
+                    // Insert new product into cart
+                    const sqlInsert = `
+                        INSERT INTO customerOrders 
+                        (user_id, pid, qty, price, total, order_date, order_status, payment_status)
+                        VALUES (?, ?, ?, ?, ?, NOW(), 'Pending', 'Unpaid')
+                    `;
+                    conn.query(sqlInsert, [user_id, pid, quantity, price, total], (err4, result2) => {
+                        if (err4) {
+                            console.error("Error adding to cart:", err4);
+                            return res.status(500).send("Error adding item to cart");
+                        }
+                        console.log(`Added ${product_name} (ID ${pid}) to cart`);
+                        res.status(200).send("Item added to cart successfully");
+                    });
+                }
+            });
+        });
+    });
+});
+
+// GET all cart items for a user
+app.get('/api/getcartitems/:user_id', (req, res) => {
+    const { user_id } = req.params;
+
+    const sql = `
+        SELECT co.id, p.product_name, co.price, co.qty, co.total
+        FROM customerOrders co
+        JOIN product p ON co.pid = p.id
+        WHERE co.user_id = ? AND co.order_status = 'Pending'
+    `;
+
+    conn.query(sql, [user_id], (err, result) => {
+        if (err) {
+            console.error("Error fetching cart:", err);
+            return res.status(500).send("Error fetching cart items");
+        }
+        res.json(result);
+    });
+});
+
+// UPDATE quantity
+app.put('/api/updatecart/:id', (req, res) => {
+    const { id } = req.params;
+    const { qty } = req.body;
+
+    if (!id || !qty) {
+        return res.status(400).send("Missing id or qty");
+    }
+
+    const sql = `
+    UPDATE customerOrders
+    SET qty = ?, total = CAST(price AS DECIMAL(10,2)) * ?
+    WHERE id = ? AND order_status = 'Pending'
+  `;
+
+    conn.query(sql, [qty, qty, id], (err, result) => {
+        if (err) {
+            console.error("Error updating quantity:", err);
+            return res.status(500).send("Error updating quantity");
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send("No matching cart item found");
+        }
+
+        console.log(`Quantity updated for order ID: ${id}, New Qty: ${qty}`);
+        res.send("Quantity updated successfully");
+    });
+});
+
+
+// DELETE item from cart
+app.delete('/api/deletefromcart/:id', (req, res) => {
+    const { id } = req.params;
+
+    const sql = "DELETE FROM customerOrders WHERE id = ? AND order_status = 'Pending'";
+    conn.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error("Error removing item:", err);
+            return res.status(500).send("Error removing item from cart");
+        }
+        res.send("Item removed successfully");
     });
 });

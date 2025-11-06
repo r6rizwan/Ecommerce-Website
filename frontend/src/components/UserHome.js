@@ -1,9 +1,87 @@
-import React, { useState, useEffect } from 'react'
+// import React, { useState, useEffect } from 'react'
+
+// const UserHome = () => {
+//   const [ProductData, setProductData] = useState([]);
+
+//   const username = localStorage.getItem("userName");
+
+//   useEffect(() => {
+//     fetch('http://localhost:3001/api/getproduct')
+//       .then((response) => response.json())
+//       .then((data) => setProductData(data))
+//       .catch((error) => console.error('Error fetching product data:', error));
+//   }, []);
+
+//   const addToCart = async (pid) => {
+//     try {
+//       const response = await fetch(`http://localhost:3001/api/addtocart/${pid}`, {
+//         method: 'POST',
+//       });
+
+//       if (response.ok) {
+//         console.log('Added to cart');
+//       } else {
+//         console.error('Could not add to cart');
+//       }
+//     } catch (error) {
+//       console.error('Error Adding to the Cart:', error);
+//     }
+//   }
+
+//   return (
+//     <div className="container my-5">
+//       <div className="text-center">
+//         <h3 className="mb-4">Welcome {username}</h3>
+//       </div>
+//       <h2 className="text-center mb-5 fw-bold">Our Latest Products</h2>
+//       <div className="row g-4">
+//         {ProductData.length === 0 && (
+//           <div className="text-center text-muted">
+//             <p>No products available.</p>
+//           </div>
+//         )}
+
+//         {ProductData.map((product) => (
+//           <div className="col-sm-6 col-md-4 col-lg-3" key={product.id}>
+//             <div className="card h-100 shadow-sm border-0 product-card">
+//               <div className="position-relative">
+//                 <img src={`http://localhost:3001/uploads/${product.image}`}
+//                   alt={product.product_name} className="card-img-top p-3 rounded"
+//                   style={{ height: '220px', objectFit: 'contain', backgroundColor: '#f8f9fa' }}>
+//                 </img>
+//                 <span className="badge bg-success position-absolute top-0 start-0 m-2">
+//                   {product.category_name}
+//                 </span>
+//               </div>
+
+//               <div className="card-body d-flex flex-column">
+//                 <h5 className="card-title text-truncate">{product.product_name}</h5>
+//                 <p className="text-muted small mb-2">{product.uom} | Stock: {product.stock}</p>
+//                 <p className="fw-bold fs-5 text-primary mb-3">₹{product.price}</p>
+//                 <p className="card-text text-truncate text-secondary">{product.description}</p>
+//                 <div className="mt-auto d-flex justify-content-between align-items-center">
+//                   <button className="btn btn-warning btn-sm" type="submit" onClick={addToCart(product.id)}>
+//                     <i className="fa fa-shopping-cart"></i> Add to Cart
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   )
+// }
+
+// export default UserHome
+
+
+import React, { useState, useEffect } from 'react';
 
 const UserHome = () => {
   const [ProductData, setProductData] = useState([]);
-
   const username = localStorage.getItem("userName");
+  const user_id = localStorage.getItem("userID");
 
   useEffect(() => {
     fetch('http://localhost:3001/api/getproduct')
@@ -12,12 +90,33 @@ const UserHome = () => {
       .catch((error) => console.error('Error fetching product data:', error));
   }, []);
 
+  const addToCart = async (pid) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/addtocart/${pid}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id }),
+      });
+
+      if (response.ok) {
+        alert('Item added to cart successfully');
+      } else {
+        const errMsg = await response.text();
+        alert(`Could not add to cart: ${errMsg}`);
+      }
+    } catch (error) {
+      console.error('Error Adding to the Cart:', error);
+      alert('Error adding item to cart');
+    }
+  };
+
   return (
     <div className="container my-5">
       <div className="text-center">
         <h3 className="mb-4">Welcome {username}</h3>
       </div>
       <h2 className="text-center mb-5 fw-bold">Our Latest Products</h2>
+
       <div className="row g-4">
         {ProductData.length === 0 && (
           <div className="text-center text-muted">
@@ -29,10 +128,12 @@ const UserHome = () => {
           <div className="col-sm-6 col-md-4 col-lg-3" key={product.id}>
             <div className="card h-100 shadow-sm border-0 product-card">
               <div className="position-relative">
-                <img src={`http://localhost:3001/uploads/${product.image}`}
-                  alt={product.product_name} className="card-img-top p-3 rounded"
-                  style={{ height: '220px', objectFit: 'contain', backgroundColor: '#f8f9fa' }}>
-                </img>
+                <img
+                  src={`http://localhost:3001/uploads/${product.image}`}
+                  alt={product.product_name}
+                  className="card-img-top p-3 rounded"
+                  style={{ height: '220px', objectFit: 'contain', backgroundColor: '#f8f9fa' }}
+                />
                 <span className="badge bg-success position-absolute top-0 start-0 m-2">
                   {product.category_name}
                 </span>
@@ -40,11 +141,18 @@ const UserHome = () => {
 
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title text-truncate">{product.product_name}</h5>
-                <p className="text-muted small mb-2">{product.uom} | Stock: {product.stock}</p>
+                <p className="text-muted small mb-2">
+                  {product.uom} | Stock: {product.stock}
+                </p>
                 <p className="fw-bold fs-5 text-primary mb-3">₹{product.price}</p>
                 <p className="card-text text-truncate text-secondary">{product.description}</p>
+
                 <div className="mt-auto d-flex justify-content-between align-items-center">
-                  <button className="btn btn-warning btn-sm">
+                  <button
+                    className="btn btn-warning btn-sm"
+                    type="button"
+                    onClick={() => addToCart(product.id)}
+                  >
                     <i className="fa fa-shopping-cart"></i> Add to Cart
                   </button>
                 </div>
@@ -54,7 +162,7 @@ const UserHome = () => {
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserHome
+export default UserHome;
