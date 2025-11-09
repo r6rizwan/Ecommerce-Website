@@ -9,14 +9,14 @@ const AdminOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/api/orders");
+        const response = await axios.get("http://localhost:3001/api/adminorders");
         if (response.status === 200) {
           setOrders(response.data.orders);
         } else {
           setError("Failed to fetch orders.");
         }
       } catch (err) {
-        console.error("Error fetching orders:", err);
+        console.error("Error fetching admin orders:", err);
         setError("An error occurred while fetching orders.");
       } finally {
         setLoading(false);
@@ -37,32 +37,34 @@ const AdminOrders = () => {
         <p className="text-center">No orders found.</p>
       ) : (
         <div className="table-responsive">
-          <table className="table table-bordered table-hover">
-            <thead className="table-primary">
+          <table className="table table-bordered table-hover align-middle">
+            <thead className="table-light">
               <tr>
                 <th>Order ID</th>
-                <th>User</th>
+                <th>User ID</th>
                 <th>Products</th>
-                <th>Total Amount</th>
+                <th>Total Amount (₹)</th>
                 <th>Status</th>
+                <th>Payment</th>
                 <th>Order Date</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td>{order.id}</td>
-                  <td>{order.username}</td>
+                  <td className="fw-bold">{order.id}</td>
+                  <td>{order.user_id}</td>
                   <td>
-                    {order.products.map((p, index) => (
+                    {order.products.map((product, index) => (
                       <div key={index}>
-                        {p.name} (x{p.quantity})
+                        {product.product_name} (Qty: {product.qty})
                       </div>
                     ))}
                   </td>
-                  <td>₹{order.totalAmount.toFixed(2)}</td>
+                  <td>₹ {order.total_amount}</td>
                   <td>{order.status}</td>
-                  <td>{new Date(order.orderDate).toLocaleString()}</td>
+                  <td>{order.payment_status}</td>
+                  <td>{new Date(order.order_date).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

@@ -80,7 +80,6 @@ import React, { useState, useEffect } from 'react';
 
 const UserHome = () => {
   const [ProductData, setProductData] = useState([]);
-  const username = localStorage.getItem("userName");
   const user_id = localStorage.getItem("userID");
 
   useEffect(() => {
@@ -99,7 +98,9 @@ const UserHome = () => {
       });
 
       if (response.ok) {
-        alert('Item added to cart successfully');
+        // Dispatch cart-update event to refresh cart count
+        window.dispatchEvent(new Event('cart-update'));
+        // alert('Item added to cart successfully');
       } else {
         const errMsg = await response.text();
         alert(`Could not add to cart: ${errMsg}`);
@@ -112,9 +113,6 @@ const UserHome = () => {
 
   return (
     <div className="container my-5">
-      <div className="text-center">
-        <h3 className="mb-4">Welcome {username}</h3>
-      </div>
       <h2 className="text-center mb-5 fw-bold">Our Latest Products</h2>
 
       <div className="row g-4">

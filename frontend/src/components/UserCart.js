@@ -122,7 +122,7 @@ const UserCart = () => {
   const handleQuantityChange = (id, qty) => {
     if (qty < 1) return;
 
-    console.log("Updating quantity:", { id, qty }); // 👈 ADD THIS
+    console.log("Updating quantity:", { id, qty });
 
     axios
       .put(`http://localhost:3001/api/updatecart/${id}`, { qty })
@@ -140,7 +140,10 @@ const UserCart = () => {
   const handleRemove = (id) => {
     axios
       .delete(`http://localhost:3001/api/deletefromcart/${id}`)
-      .then(() => setCartItems((prev) => prev.filter((i) => i.id !== id)))
+      .then(() => {
+        window.dispatchEvent(new Event("cart-update"));
+        return setCartItems((prev) => prev.filter((i) => i.id !== id));
+      })
       .catch((err) => console.error("Error removing item:", err));
   };
 
@@ -202,9 +205,21 @@ const UserCart = () => {
               </tr>
             </tbody>
           </table>
-          <div className="text-center mt-4">
+          {/* <div className="text-center mt-4">
             <button className="btn btn-success me-2" disabled={cartItems.length === 0}>
               Proceed to Checkout
+            </button>
+          </div> */}
+
+          {/* Checkout button redirects to PayBill component with total price */}
+          <div className="text-center mt-4">
+            <button
+              className="btn btn-success btn-lg"
+              onClick={() =>
+                (window.location.href = `/paybill?uid=${user_id}&price=${totalPrice.toFixed(2)}`)
+              }
+            >
+              Proceed to Checkout ₹{totalPrice.toFixed(2)}
             </button>
           </div>
         </div>

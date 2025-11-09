@@ -131,6 +131,40 @@ input.form-control,
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* 🚪 Navbar Logout Button Final Fix */
+.navbar .btn-link.nav-link {
+  color: rgba(255, 255, 255, 0.75) !important;
+  background: transparent !important;
+  text-decoration: none !important;
+  border: none !important;
+  padding: 0.5rem 1rem !important;
+  box-shadow: none !important;
+  font-weight: 400 !important;
+}
+
+/* Hover and focus states */
+.navbar .btn-link.nav-link:hover,
+.navbar .btn-link.nav-link:focus {
+  color: #fff !important;
+  background: transparent !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
+
+/* Active / clicked states */
+.navbar .btn-link.nav-link:active,
+.navbar .btn-link.nav-link:focus-visible {
+  color: #fff !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Optional: align spacing like other links */
+.navbar .nav-item .btn-link.nav-link {
+  margin: 0 !important;
+}
+
 /* 🔄 Animation (optional, for logo or spinner) */
 @keyframes App-logo-spin {
   from {
@@ -140,4 +174,23 @@ input.form-control,
   to {
     transform: rotate(360deg);
   }
+}
+
+/* 🌟 Fix hover issue for the user dropdown button */
+.btn-outline-light {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-light:hover,
+.btn-outline-light:focus {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Optional – make it look more elegant and modern */
+.btn-outline-light.dropdown-toggle::after {
+  vertical-align: 0.15em;
 }

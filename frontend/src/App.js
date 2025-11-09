@@ -91,6 +91,8 @@ import ForgotPassword from './components/ForgotPassword.js';
 import OtpScreen from './components/OtpScreen.js';
 import ResetPassword from './components/ResetPassword.js';
 import UserOrders from './components/UserOrders.js';
+import PayBill from './components/PayBill.js';
+import PaySuccess from './components/PaySuccess.js';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -143,6 +145,8 @@ function AppContent() {
           <Route path="/userorders" element={<UserOrders />} />
           <Route path="/feedback" element={<FeedbackPage />} />
           <Route path="/usercart" element={<UserCart />} />
+          <Route path="/paybill" element={<PayBill />} />
+          <Route path="/paysuccess" element={<PaySuccess />} />
         </Routes>
       </div>
       <Footer />

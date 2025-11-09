@@ -371,15 +371,35 @@ app.get('/api/orders', (req, res) => {
     });
 });
 
+//adminOrders api
+app.get('/api/adminorders', (req, res) => {
+    const sqlSelectOrders = `SELECT * FROM customerOrders`;
+    conn.query(sqlSelectOrders, (err, results) => {
+        if (err) {
+            console.error("Error fetching orders data:", err);
+            return res.status(500).send("Error fetching orders data");
+        }
+
+        res.status(200).json({ orders: results });
+    });
+});
+
 // GET user-specific orders (excluding cart/pending)
 app.get('/api/userorders/:user_id', (req, res) => {
-  const { user_id } = req.params;
+    const { user_id } = req.params;
 
-  const sql = `
+    // Basic validation
+    if (!user_id || isNaN(user_id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const sql = `
     SELECT 
       co.id AS order_id,
       co.pid,
       p.product_name,
+      p.image,
+      p.category_name,
       co.qty,
       co.price,
       co.total,
@@ -388,46 +408,51 @@ app.get('/api/userorders/:user_id', (req, res) => {
       co.payment_status
     FROM customerOrders co
     JOIN product p ON co.pid = p.id
-    WHERE co.user_id = ? AND co.order_status != 'Pending'
+    WHERE co.user_id = ?
     ORDER BY co.order_date DESC
   `;
 
-  conn.query(sql, [user_id], (err, results) => {
-    if (err) {
-      console.error("Error fetching user orders:", err);
-      return res.status(500).json({ message: "Error fetching orders" });
-    }
+    conn.query(sql, [user_id], (err, results) => {
+        if (err) {
+            console.error("❌ Error fetching user orders:", err);
+            return res.status(500).json({ message: "Error fetching orders" });
+        }
 
-    if (results.length === 0) {
-      return res.status(200).json({ orders: [] });
-    }
+        if (results.length === 0) {
+            return res.status(200).json({ orders: [] });
+        }
 
-    // Group by order_id if multiple products in same order
-    const groupedOrders = {};
-    results.forEach(row => {
-      if (!groupedOrders[row.order_id]) {
-        groupedOrders[row.order_id] = {
-          id: row.order_id,
-          orderDate: row.order_date,
-          status: row.order_status,
-          paymentStatus: row.payment_status,
-          products: [],
-          totalAmount: 0,
-        };
-      }
-      groupedOrders[row.order_id].products.push({
-        name: row.product_name,
-        qty: row.qty,
-        price: parseFloat(row.price),
-        total: parseFloat(row.total),
-      });
-      groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
+        // 🧩 Group results by order_id
+        const groupedOrders = {};
+        results.forEach(row => {
+            if (!groupedOrders[row.order_id]) {
+                groupedOrders[row.order_id] = {
+                    id: row.order_id,
+                    orderDate: new Date(row.order_date).toISOString(),
+                    status: row.order_status,
+                    paymentStatus: row.payment_status,
+                    products: [],
+                    totalAmount: 0,
+                };
+            }
+
+            groupedOrders[row.order_id].products.push({
+                name: row.product_name,
+                category: row.category_name,
+                image: row.image,
+                qty: row.qty,
+                price: parseFloat(row.price),
+                total: parseFloat(row.total),
+            });
+
+            groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
+        });
+
+        const orders = Object.values(groupedOrders);
+        res.status(200).json({ orders });
     });
-
-    const orders = Object.values(groupedOrders);
-    res.status(200).json({ orders });
-  });
 });
+
 
 
 //forgot password API
@@ -710,4 +735,43 @@ app.delete('/api/deletefromcart/:id', (req, res) => {
         }
         res.send("Item removed successfully");
     });
+});
+
+// rzp_test_RcpYJahrNYiMkG API Key
+// Ycu2DEJwCQNG8D1aKlv2Tij6 Test key Secret
+
+
+// paybill api with insert query for payment in payment table
+app.post('/api/paybill/:razorpay_id/:price', (req, res) => {
+  const { razorpay_id, price } = req.params; // note param name
+  const { uid } = req.body; // uid = user id
+
+  // 1) Insert payment with Razorpay reference
+  const sqlInsertPayment = `
+    INSERT INTO payment (user_id, order_id, payment_reference, amount, payment_date)
+    VALUES (?, NULL, ?, ?, NOW())
+  `;
+
+  conn.query(sqlInsertPayment, [uid, razorpay_id, price], (err) => {
+    if (err) {
+      console.error("Error inserting payment:", err);
+      return res.status(500).json({ success: false, message: "Error processing payment" });
+    }
+
+    // 2) Update customerOrders for this user (mark pending -> confirmed+paid)
+    const sqlUpdateOrders = `
+      UPDATE customerOrders
+      SET order_status = 'Confirmed', payment_status = 'Paid'
+      WHERE user_id = ? AND order_status = 'Pending'
+    `;
+
+    conn.query(sqlUpdateOrders, [uid], (err2) => {
+      if (err2) {
+        console.error("Error updating orders:", err2);
+        return res.status(500).json({ success: false, message: "Error updating orders" });
+      }
+
+      return res.status(200).json({ success: true, message: "Payment recorded and orders confirmed" });
+    });
+  });
 });
