@@ -373,33 +373,14 @@ app.get('/api/orders', (req, res) => {
 
 //adminOrders api
 app.get('/api/adminorders', (req, res) => {
-    const sqlSelectOrders = `SELECT * FROM customerOrders`;
-    conn.query(sqlSelectOrders, (err, results) => {
-        if (err) {
-            console.error("Error fetching orders data:", err);
-            return res.status(500).send("Error fetching orders data");
-        }
-
-        res.status(200).json({ orders: results });
-    });
-});
-
-// GET user-specific orders (excluding cart/pending)
-app.get('/api/userorders/:user_id', (req, res) => {
-    const { user_id } = req.params;
-
-    // Basic validation
-    if (!user_id || isNaN(user_id)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-    }
-
     const sql = `
     SELECT 
       co.id AS order_id,
-      co.pid,
+      co.user_id,
+      r.name AS customer_name,
+      r.email AS customer_email,
       p.product_name,
       p.image,
-      p.category_name,
       co.qty,
       co.price,
       co.total,
@@ -408,27 +389,35 @@ app.get('/api/userorders/:user_id', (req, res) => {
       co.payment_status
     FROM customerOrders co
     JOIN product p ON co.pid = p.id
-    WHERE co.user_id = ?
-    ORDER BY co.order_date DESC
+    JOIN register r ON co.user_id = r.id
+    ORDER BY 
+      CASE 
+        WHEN co.payment_status = 'Unpaid' THEN 0
+        ELSE 1
+      END,
+      co.order_date DESC
   `;
 
-    conn.query(sql, [user_id], (err, results) => {
+    conn.query(sql, (err, results) => {
         if (err) {
-            console.error("❌ Error fetching user orders:", err);
-            return res.status(500).json({ message: "Error fetching orders" });
+            console.error("Error fetching admin orders:", err);
+            return res.status(500).json({ message: "Error fetching admin orders" });
         }
 
         if (results.length === 0) {
             return res.status(200).json({ orders: [] });
         }
 
-        // 🧩 Group results by order_id
+        // Group orders by order_id
         const groupedOrders = {};
-        results.forEach(row => {
+        results.forEach((row) => {
             if (!groupedOrders[row.order_id]) {
                 groupedOrders[row.order_id] = {
                     id: row.order_id,
-                    orderDate: new Date(row.order_date).toISOString(),
+                    user_id: row.user_id,
+                    customer_name: row.customer_name,
+                    customer_email: row.customer_email,
+                    orderDate: row.order_date,
                     status: row.order_status,
                     paymentStatus: row.payment_status,
                     products: [],
@@ -437,8 +426,7 @@ app.get('/api/userorders/:user_id', (req, res) => {
             }
 
             groupedOrders[row.order_id].products.push({
-                name: row.product_name,
-                category: row.category_name,
+                product_name: row.product_name,
                 image: row.image,
                 qty: row.qty,
                 price: parseFloat(row.price),
@@ -448,12 +436,92 @@ app.get('/api/userorders/:user_id', (req, res) => {
             groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
         });
 
-        const orders = Object.values(groupedOrders);
+        const orders = Object.values(groupedOrders).sort((a, b) => {
+            // unpaid first, then latest
+            if (a.paymentStatus === "Unpaid" && b.paymentStatus !== "Unpaid") return -1;
+            if (a.paymentStatus !== "Unpaid" && b.paymentStatus === "Unpaid") return 1;
+            return new Date(b.orderDate) - new Date(a.orderDate);
+        });
+
         res.status(200).json({ orders });
     });
 });
 
 
+// GET user-specific orders (excluding cart/pending)
+app.get('/api/userorders/:user_id', (req, res) => {
+    const { user_id } = req.params;
+
+    const sql = `
+    SELECT 
+      co.id AS order_id,
+      co.pid,
+      p.product_name,
+      p.image,
+      co.qty,
+      co.price,
+      co.total,
+      co.order_date,
+      co.order_status,
+      co.payment_status
+    FROM customerOrders co
+    JOIN product p ON co.pid = p.id
+    WHERE co.user_id = ?
+    ORDER BY 
+      CASE 
+        WHEN co.payment_status = 'Unpaid' THEN 0  -- unpaid first
+        ELSE 1 
+      END,
+      co.order_date DESC;
+  `;
+
+    conn.query(sql, [user_id], (err, results) => {
+        if (err) {
+            console.error("Error fetching user orders:", err);
+            return res.status(500).json({ message: "Error fetching orders" });
+        }
+
+        if (results.length === 0) {
+            return res.status(200).json({ orders: [] });
+        }
+
+        // Group by order_id
+        const groupedOrders = {};
+        results.forEach((row) => {
+            if (!groupedOrders[row.order_id]) {
+                groupedOrders[row.order_id] = {
+                    id: row.order_id,
+                    orderDate: row.order_date,
+                    status: row.order_status,
+                    paymentStatus: row.payment_status,
+                    products: [],
+                    totalAmount: 0,
+                };
+            }
+
+            groupedOrders[row.order_id].products.push({
+                name: row.product_name,
+                image: row.image,
+                qty: row.qty,
+                price: parseFloat(row.price),
+                total: parseFloat(row.total),
+            });
+
+            groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
+        });
+
+        // ✅ Convert to array and sort again — ensures latest first
+        const orders = Object.values(groupedOrders).sort((a, b) => {
+            // unpaid first
+            if (a.paymentStatus === "Unpaid" && b.paymentStatus !== "Unpaid") return -1;
+            if (a.paymentStatus !== "Unpaid" && b.paymentStatus === "Unpaid") return 1;
+            // then by date descending (latest first)
+            return new Date(b.orderDate) - new Date(a.orderDate);
+        });
+
+        res.status(200).json({ orders });
+    });
+});
 
 //forgot password API
 app.post('/api/forgotpassword', (req, res) => {
@@ -677,11 +745,17 @@ app.get('/api/getcartitems/:user_id', (req, res) => {
     const { user_id } = req.params;
 
     const sql = `
-        SELECT co.id, p.product_name, co.price, co.qty, co.total
-        FROM customerOrders co
-        JOIN product p ON co.pid = p.id
-        WHERE co.user_id = ? AND co.order_status = 'Pending'
-    `;
+    SELECT 
+      co.id, 
+      p.product_name, 
+      p.image,
+      co.price, 
+      co.qty, 
+      co.total
+    FROM customerOrders co
+    JOIN product p ON co.pid = p.id
+    WHERE co.user_id = ? AND co.order_status = 'Pending'
+  `;
 
     conn.query(sql, [user_id], (err, result) => {
         if (err) {
@@ -743,35 +817,89 @@ app.delete('/api/deletefromcart/:id', (req, res) => {
 
 // paybill api with insert query for payment in payment table
 app.post('/api/paybill/:razorpay_id/:price', (req, res) => {
-  const { razorpay_id, price } = req.params; // note param name
-  const { uid } = req.body; // uid = user id
+    const { razorpay_id, price } = req.params;
+    const { uid } = req.body;
 
-  // 1) Insert payment with Razorpay reference
-  const sqlInsertPayment = `
-    INSERT INTO payment (user_id, order_id, payment_reference, amount, payment_date)
-    VALUES (?, NULL, ?, ?, NOW())
-  `;
+    const sqlInsertPayment = `INSERT INTO payment (user_id, payment_reference, 
+    amount, payment_date) VALUES (?, ?, ?, NOW())`;
 
-  conn.query(sqlInsertPayment, [uid, razorpay_id, price], (err) => {
-    if (err) {
-      console.error("Error inserting payment:", err);
-      return res.status(500).json({ success: false, message: "Error processing payment" });
-    }
+    conn.query(sqlInsertPayment, [uid, razorpay_id, price], (err) => {
+        if (err) {
+            console.error("Error inserting payment:", err);
+            return res.status(500).json({ success: false, message: "Error processing payment" });
+        }
 
-    // 2) Update customerOrders for this user (mark pending -> confirmed+paid)
-    const sqlUpdateOrders = `
-      UPDATE customerOrders
-      SET order_status = 'Confirmed', payment_status = 'Paid'
-      WHERE user_id = ? AND order_status = 'Pending'
-    `;
+        // 2) Update customerOrders for this user (mark pending -> confirmed+paid)
+        const sqlUpdateOrders = `UPDATE customerOrders 
+        SET order_status = 'Confirmed', payment_status = 'Paid' 
+        WHERE user_id = ? AND order_status = 'Pending'`;
 
-    conn.query(sqlUpdateOrders, [uid], (err2) => {
-      if (err2) {
-        console.error("Error updating orders:", err2);
-        return res.status(500).json({ success: false, message: "Error updating orders" });
-      }
+        conn.query(sqlUpdateOrders, [uid], (err2) => {
+            if (err2) {
+                console.error("Error updating orders:", err2);
+                return res.status(500).json({ success: false, message: "Error updating orders" });
+            }
 
-      return res.status(200).json({ success: true, message: "Payment recorded and orders confirmed" });
+            return res.status(200).json({ success: true, message: "Payment recorded and orders confirmed" });
+        });
     });
-  });
+});
+
+// Admin Dashboard API
+app.get("/api/admindashboard", (req, res) => {
+    const queries = {
+        totalSales: `SELECT SUM(total) AS totalSales FROM customerOrders WHERE payment_status = 'Paid'`,
+        totalOrders: `SELECT COUNT(DISTINCT id) AS totalOrders FROM customerOrders`,
+        totalCustomers: `SELECT COUNT(*) AS totalCustomers FROM register`,
+        todayOrders: `SELECT COUNT(DISTINCT id) AS todayOrders FROM customerOrders WHERE DATE(order_date) = CURDATE()`,
+        recentOrders: `
+      SELECT co.id, r.name AS customer_name, p.product_name, co.order_date
+      FROM customerOrders co
+      JOIN register r ON co.user_id = r.id
+      JOIN product p ON co.pid = p.id
+      ORDER BY co.order_date DESC
+      LIMIT 5;
+    `,
+        recentReviews: `
+      SELECT id, user_id, comments
+      FROM feedback
+      ORDER BY id DESC
+      LIMIT 5;
+    `
+    };
+
+    // Execute all queries in parallel
+    Promise.all(
+        Object.values(queries).map((query) => {
+            return new Promise((resolve, reject) => {
+                conn.query(query, (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                });
+            });
+        })
+    )
+        .then(
+            ([
+                totalSalesRes,
+                totalOrdersRes,
+                totalCustomersRes,
+                todayOrdersRes,
+                recentOrdersRes,
+                recentReviewsRes,
+            ]) => {
+                res.status(200).json({
+                    totalSales: totalSalesRes[0]?.totalSales || 0,
+                    totalOrders: totalOrdersRes[0]?.totalOrders || 0,
+                    totalCustomers: totalCustomersRes[0]?.totalCustomers || 0,
+                    todayOrders: todayOrdersRes[0]?.todayOrders || 0,
+                    recentOrders: recentOrdersRes,
+                    recentReviews: recentReviewsRes,
+                });
+            }
+        )
+        .catch((err) => {
+            console.error("Error fetching admin dashboard:", err);
+            res.status(500).json({ message: "Error fetching admin dashboard" });
+        });
 });

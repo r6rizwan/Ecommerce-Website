@@ -90,21 +90,6 @@ const ProductAddPage = () => {
 
                 <form onSubmit={handleSubmit}>
                     {/* Category Name */}
-                    {/* <div className="mb-3">
-                        <label htmlFor="categoryName" className="form-label">
-                            Category Name
-                        </label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            id="categoryName"
-                            name="categoryName"
-                            placeholder="Enter category name"
-                            required
-                            value={formData.categoryName} onChange={handleChange}
-                        />
-                    </div> */}
-                    
                     <div className="mb-3">
                         <label htmlFor="categoryName" className="form-label">
                             Category Name

@@ -414,8 +414,8 @@ const Navbar = () => {
                   {userName ? `Hi, ${userName.split(" ")[0]} 👋` : "Account"}
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end">
-                  <li><NavLink className="dropdown-item" to="/profile">Profile</NavLink></li>
-                  <li><hr className="dropdown-divider" /></li>
+                  {/* <li><NavLink className="dropdown-item" to="/profile">Profile</NavLink></li> */}
+                  {/* <li><hr className="dropdown-divider" /></li> */}
                   <li>
                     <button className="dropdown-item text-danger" onClick={handleLogout}>
                       <i className="bi bi-box-arrow-right me-2"></i> Logout
