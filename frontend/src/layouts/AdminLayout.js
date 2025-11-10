@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 
 const AdminLayout = () => {
@@ -7,8 +7,12 @@ const AdminLayout = () => {
     const [open, setOpen] = useState(false); // dropdown toggle
     const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar toggle
 
-    const toggleDropdown = () => setOpen(!open);
+    // const toggleDropdown = () => setOpen(!open);
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+    useEffect(() => {
+        setOpen(false);
+    }, [location.pathname, sidebarOpen]);
 
     return (
         <div className="d-flex flex-column flex-md-row">
@@ -85,14 +89,18 @@ const AdminLayout = () => {
                     </li>
 
                     {/* Reports Dropdown */}
-                    <li className={`nav-item dropdown mb-2 ps-3 ${open ? "show" : ""}`}>
+                    <li className={`nav-item dropdown mb-2 pt-2 ps-3 ${open ? "show" : ""}`}>
                         <button
                             className={`nav-link dropdown-toggle text-white w-100 text-start border-0 bg-transparent p-0 ${isReportsActive ? "fw-bold text-warning" : ""
                                 }`}
-                            onClick={toggleDropdown}
+                            onClick={(e) => {
+                                e.stopPropagation(); // prevent bubbling
+                                setOpen((prev) => !prev);
+                            }}
                         >
                             <i className="bi bi-bar-chart-line me-2"></i> Reports
                         </button>
+
                         <ul className={`dropdown-menu ${open ? "show" : ""}`}>
                             <li>
                                 <NavLink

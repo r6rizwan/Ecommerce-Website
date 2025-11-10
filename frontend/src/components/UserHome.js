@@ -139,9 +139,9 @@ const UserHome = () => {
 
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title text-truncate">{product.product_name}</h5>
-                <p className="text-muted small mb-2">
+                {/* <p className="text-muted small mb-2">
                   {product.uom} | Stock: {product.stock}
-                </p>
+                </p> */}
                 <p className="fw-bold fs-5 text-primary mb-3">₹{product.price}</p>
                 <p className="card-text text-truncate text-secondary">{product.description}</p>
 

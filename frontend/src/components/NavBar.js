@@ -393,7 +393,7 @@ const Navbar = () => {
             {/* ---------------- GUEST MENU ---------------- */}
             {!isLoggedIn && (
               <>
-                <li className="nav-item"><NavLink to="/products" className="nav-link">Products</NavLink></li>
+                {/* <li className="nav-item"><NavLink to="/products" className="nav-link">Products</NavLink></li> */}
                 <li className="nav-item"><NavLink to="/aboutus" className="nav-link">About Us</NavLink></li>
                 <li className="nav-item"><NavLink to="/contactus" className="nav-link">Contact Us</NavLink></li>
                 <li className="nav-item"><NavLink to="/login" className="nav-link">Login</NavLink></li>
