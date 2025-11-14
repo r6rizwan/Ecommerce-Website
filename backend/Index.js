@@ -1,4 +1,3 @@
-const e = require('express');
 const express = require('express');
 const app = express();
 const port = 3001
@@ -40,6 +39,7 @@ const cors = require('cors');
 const { dir } = require('console');
 app.use(cors());
 
+// Register new user API
 app.post('/api/register', (req, res) => {
     const { name, gender, city, address, pincode, email, password } = req.body;
 
@@ -72,6 +72,7 @@ app.post('/api/register', (req, res) => {
     });
 });
 
+// Add Category API
 app.post('/api/addcategory', (req, res) => {
     const { categoryName } = req.body;
 
@@ -91,22 +92,64 @@ app.post('/api/addcategory', (req, res) => {
     });
 });
 
+// Feedback API
 app.post('/api/feedback', (req, res) => {
-    const { aboutProduct, aboutService, comments } = req.body;
+    const { pid, user_id, aboutProduct, aboutService, comments, star_rating } = req.body;
 
-    const sqlInsertFeedback = `
-        INSERT INTO feedback (user_id,about_product, about_service, comments)
-        VALUES (?, ?, ?, ?)
-    `;
+    if (!pid || !user_id || !aboutProduct || !aboutService || !comments || !star_rating) {
+        return res.status(400).json({ message: "All fields are required." });
+    }
 
-    conn.query(sqlInsertFeedback, ['user@gmail.com', aboutProduct, aboutService, comments], (err, result) => {
+    if (isNaN(star_rating) || star_rating < 1 || star_rating > 5) {
+        return res.status(400).json({ message: "Star rating must be between 1 and 5." });
+    }
+
+    // Check if the feedback already exists
+    const checkSql = "SELECT * FROM feedback WHERE pid = ? AND user_id = ?";
+    conn.query(checkSql, [pid, user_id], (err, results) => {
         if (err) {
-            console.error("Error inserting into feedback:", err);
-            return res.status(500).send("Error submitting feedback");
+            console.error("❌ Error checking feedback existence:", err);
+            return res.status(500).json({ message: "Database error while checking feedback." });
         }
 
-        console.log("Feedback submitted successfully");
-        res.status(200).send("Feedback submitted successfully");
+        if (results.length > 0) {
+            // Update existing feedback
+            const updateSql = `
+        UPDATE feedback 
+        SET about_product = ?, about_service = ?, comments = ?, star_rating = ?
+        WHERE pid = ? AND user_id = ?
+      `;
+            conn.query(
+                updateSql,
+                [aboutProduct, aboutService, comments, star_rating, pid, user_id],
+                (updateErr) => {
+                    if (updateErr) {
+                        console.error("❌ Error updating feedback:", updateErr);
+                        return res.status(500).json({ message: "Error updating feedback." });
+                    }
+                    // console.log("Feedback updated successfully:", { pid, user_id });
+                    return res.status(200).json({ message: "Feedback updated successfully!" });
+                }
+            );
+        } else {
+            // Insert new feedback
+            const insertSql = `
+        INSERT INTO feedback (pid, user_id, about_product, about_service, comments, star_rating)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+            conn.query(
+                insertSql,
+                [pid, user_id, aboutProduct, aboutService, comments, star_rating],
+                (insertErr) => {
+                    if (insertErr) {
+                        console.error("❌ Error inserting feedback:", insertErr);
+                        return res.status(500).json({ message: "Error submitting feedback." });
+                    }
+                    console.log("✅ Feedback submitted successfully:", { pid, user_id });
+                    return res.status(200).json({ message: "Feedback submitted successfully!" });
+                }
+            );
+        }
     });
 });
 
@@ -123,7 +166,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Add product with image upload
-app.post('/api/addProduct', upload.single('image'), (req, res) => {
+app.post('/api/addproduct', upload.single('image'), (req, res) => {
     const { categoryName, productName, quantity, uom, price, stock, description } = req.body;
     const image = req.file ? req.file.filename : null;
 
@@ -143,25 +186,7 @@ app.post('/api/addProduct', upload.single('image'), (req, res) => {
     });
 });
 
-// app.post('/api/addProduct', (req, res) => {
-//     const { categoryName, productName, quantity, uom, price, stock, image, description } = req.body;
-
-//     const sqlInsertProduct = `
-//         INSERT INTO product (category_name, product_name, qty, uom, price, stock, image, description)
-//         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-//     `;
-
-//     conn.query(sqlInsertProduct, [categoryName, productName, quantity, uom, price, stock, image, description], (err, result) => {
-//         if (err) {
-//             console.error("Error inserting into product:", err);
-//             return res.status(500).send("Error adding product");
-//         }
-
-//         console.log("Product added successfully:", productName);
-//         res.status(200).send("Product added successfully");
-//     });
-// });
-
+// User data API
 app.get('/api/getregister', (req, res) => {
     const sqlSelectRegister = `SELECT * FROM register`;
     conn.query(sqlSelectRegister, (err, results) => {
@@ -198,6 +223,21 @@ app.get('/api/getproduct', (req, res) => {
     });
 });
 
+// User Feedbacks
+app.get('/api/userfeedback/:pid/:user_id', (req, res) => {
+  const { pid, user_id } = req.params;
+
+  const sql = "SELECT * FROM feedback WHERE pid = ? AND user_id = ?";
+  conn.query(sql, [pid, user_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching feedback:", err);
+      return res.status(500).json({ message: "Error fetching feedback." });
+    }
+    res.json(results[0] || null);
+  });
+});
+
+// Admin Feedbacks
 app.get('/api/getfeedback', (req, res) => {
     const sqlSelectFeedback = `SELECT * FROM feedback`;
     conn.query(sqlSelectFeedback, (err, results) => {
@@ -265,47 +305,6 @@ app.delete('/api/deletefeedback/:id', (req, res) => {
         res.status(200).send("Feedback deleted successfully");
     });
 });
-
-// Auth Login API
-// app.post('/api/authlogin', (req, res) => {
-//     const { username, password } = req.body;
-
-//     const sqlSelectLogin = `SELECT * FROM login WHERE username = ? AND password = ?`;
-
-//     conn.query(sqlSelectLogin, [username, password], (err, results) => {
-//         if (err) {
-//             console.error("Error querying login:", err);
-//             return res.status(500).send("Error during login");
-//         }
-
-//         if (results.length > 0) {
-//             const sqlSelectUserName = `SELECT name FROM register WHERE email = ?`;
-//             conn.query(sqlSelectUserName, [username], (err, resUser) => {
-//                 if (err) {
-//                     console.error("Error querying username:", err);
-//                     return res.status(500).send("Error fetching user details");
-//                 }
-
-//                 const user_name = resUser.length > 0 ? resUser[0].name : '';
-
-//                 console.log("Login successful for user:", username);
-
-//                 res.status(200).json({
-//                     success: true,
-//                     message: "Login successful",
-//                     username: results[0].username,
-//                     utype: results[0].utype,
-//                     user: user_name,
-//                     user_id: results[0].id,
-//                 });
-//             });
-
-//         } else {
-//             console.log("Invalid credentials for user:", username);
-//             res.status(401).json({ success: false, message: "Invalid credentials" });
-//         }
-//     });
-// });
 
 // Auth Login API
 app.post('/api/authlogin', (req, res) => {
@@ -500,6 +499,7 @@ app.get('/api/userorders/:user_id', (req, res) => {
             }
 
             groupedOrders[row.order_id].products.push({
+                pid: row.pid,
                 name: row.product_name,
                 image: row.image,
                 qty: row.qty,
@@ -510,7 +510,7 @@ app.get('/api/userorders/:user_id', (req, res) => {
             groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
         });
 
-        // ✅ Convert to array and sort again — ensures latest first
+        // Convert to array and sort again — ensures latest first
         const orders = Object.values(groupedOrders).sort((a, b) => {
             // unpaid first
             if (a.paymentStatus === "Unpaid" && b.paymentStatus !== "Unpaid") return -1;
@@ -861,7 +861,7 @@ app.get("/api/admindashboard", (req, res) => {
       LIMIT 5;
     `,
         recentReviews: `
-      SELECT id, user_id, comments
+      SELECT id,pid, user_id, comments, star_rating
       FROM feedback
       ORDER BY id DESC
       LIMIT 5;

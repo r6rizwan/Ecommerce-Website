@@ -373,6 +373,7 @@ const AdminHome = () => {
                       <th>#</th>
                       <th>User ID</th>
                       <th>Comment</th>
+                      <th>Rating</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -381,6 +382,18 @@ const AdminHome = () => {
                         <td>{i + 1}</td>
                         <td>{review.user_id}</td>
                         <td>{review.comments}</td>
+                        <td>
+                          {review.star_rating && review.star_rating > 0 ? (
+                            [...Array(review.star_rating)].map((_, i) => (
+                              <i
+                                key={i}
+                                className="bi bi-star-fill text-warning mx-1"
+                              ></i>
+                            ))
+                          ) : (
+                            <span className="text-muted">No Rating</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

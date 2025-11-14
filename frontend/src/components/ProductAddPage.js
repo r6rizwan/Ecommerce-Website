@@ -51,7 +51,7 @@ const ProductAddPage = () => {
             }
             // Send POST request to backend
             const response = await axios.post(
-                "http://localhost:3001/api/addProduct",
+                "http://localhost:3001/api/addproduct",
                 formDataToSend,
                 {
                     headers: { "Content-Type": "multipart/form-data" },
@@ -59,7 +59,7 @@ const ProductAddPage = () => {
             );
 
             if (response.status === 200) {
-                alert("✅ Product added successfully!");
+                alert("Product added successfully!");
                 // Reset form
                 setFormData({
                     categoryName: '',
@@ -74,7 +74,7 @@ const ProductAddPage = () => {
                 // Navigate to product view page
                 navigate("/productview");
             } else {
-                alert("⚠️ Failed to add product. Please try again.");
+                alert("Failed to add product. Please try again.");
             }
 
         } catch (error) {
@@ -276,7 +276,7 @@ export default ProductAddPage;
 //       });
 
 //       const response = await axios.post(
-//         "http://localhost:3001/api/addProduct",
+//         "http://localhost:3001/api/addproduct",
 //         formDataToSend,
 //         {
 //           headers: { "Content-Type": "multipart/form-data" },

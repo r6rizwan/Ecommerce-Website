@@ -13,7 +13,7 @@ const PayBill = () => {
     const paymentHandler = async (e) => {
         e.preventDefault();
 
-        // 💡 Always send ₹1 for Razorpay testing
+        // Always send ₹1 for Razorpay testing
         const razorpayAmount = 1 * 100;
 
         const options = {

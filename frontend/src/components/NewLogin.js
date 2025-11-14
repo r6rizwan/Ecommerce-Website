@@ -31,16 +31,16 @@ const NewLogin = () => {
       console.log("Server Response:", response.data);
 
       if (response.status === 200 && response.data.success) {
-        // ✅ Store consistent keys
+        // Store consistent keys
         localStorage.setItem("userName", response.data.username);
         localStorage.setItem("utype", response.data.utype);
         localStorage.setItem("userID", response.data.user_id);
         localStorage.setItem("isLoggedIn", "true");
 
-        // ✅ Notify app of login
+        // Notify app of login
         window.dispatchEvent(new Event("app-storage"));
 
-        // ✅ Navigate to correct home page
+        // Navigate to correct home page
         navigate(response.data.utype === "admin" ? "/adminhome" : "/userhome");
       } else {
         alert(response.data.message || "Invalid credentials. Please try again.");
