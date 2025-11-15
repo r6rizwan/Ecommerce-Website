@@ -164,17 +164,6 @@ Backend → http://localhost:3001
 
 ---
 
-## 📸 Screenshots  
-(Add screenshots later)
-
-```
-/screenshots/home.png
-/screenshots/product.png
-/screenshots/admin.png
-```
-
----
-
 ## 🤝 Contributing
 Contributions are welcome!  
 Feel free to open issues or submit pull requests.
