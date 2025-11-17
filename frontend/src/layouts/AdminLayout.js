@@ -159,7 +159,7 @@ const AdminLayout = () => {
                             <li>
                                 <NavLink
                                     className="dropdown-item"
-                                    to="/addcategory"
+                                    to="/category"
                                     onClick={() => {
                                         setOpenDropdown(null);
                                         setSidebarOpen(false);
