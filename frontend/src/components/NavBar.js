@@ -14,7 +14,9 @@ const Navbar = () => {
   const fetchCartCount = useCallback(async () => {
     if (utype === "user" && user_id) {
       try {
-        const res = await axios.get(`http://localhost:3001/api/getcartitems/${user_id}`);
+        const res = await axios.get(
+          `http://localhost:3001/api/getcartitems/${user_id}`
+        );
         setCartCount(res.data.length);
       } catch (error) {
         console.error("Error fetching cart count:", error);
@@ -30,7 +32,7 @@ const Navbar = () => {
     return () => window.removeEventListener("cart-update", handleCartUpdate);
   }, [fetchCartCount]);
 
-  // Sync utype & username across tabs/sessions
+  // Sync user info
   useEffect(() => {
     const syncUser = () => {
       setUtype(localStorage.getItem("utype"));
@@ -54,14 +56,14 @@ const Navbar = () => {
     utype === "admin" ? "/adminhome" : utype === "user" ? "/userhome" : "/";
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
+    <nav className="navbar navbar-expand-lg sticky-top">
       <div className="container">
         {/* Brand */}
-        <NavLink className="navbar-brand fw-bold" to={homeLink}>
-          E-Commerce Website
+        <NavLink className="navbar-brand" to={homeLink}>
+          ShopSphere
         </NavLink>
 
-        {/* Toggler (mobile) */}
+        {/* Mobile Toggle */}
         <button
           className="navbar-toggler"
           type="button"
@@ -71,120 +73,120 @@ const Navbar = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Navbar Links */}
+        {/* Links */}
         <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-          <ul className="navbar-nav align-items-lg-center">
+          <ul className="navbar-nav align-items-center">
 
-            {/* Common: Home */}
+            {/* Common Home */}
             <li className="nav-item">
               <NavLink to={homeLink} className="nav-link">
                 Home
               </NavLink>
             </li>
 
-            {/* ---------------- ADMIN MENU ---------------- */}
+            {/* ADMIN MENU */}
             {utype === "admin" && (
               <>
-                <li className="nav-item dropdown">
-                  <button
-                    className="nav-link dropdown-toggle btn btn-link text-decoration-none"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                  >
-                    Categories
-                  </button>
-                  <ul className="dropdown-menu">
-                    <li><NavLink className="dropdown-item" to="/categoryview">View Categories</NavLink></li>
-                    <li><NavLink className="dropdown-item" to="/category">Add Category</NavLink></li>
-                  </ul>
+                <li className="nav-item">
+                  <NavLink to="/orders" className="nav-link">
+                    Orders
+                  </NavLink>
                 </li>
-
-                <li className="nav-item dropdown">
-                  <button
-                    className="nav-link dropdown-toggle btn btn-link text-decoration-none"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                  >
+                <li className="nav-item">
+                  <NavLink to="/productview" className="nav-link">
                     Products
-                  </button>
-                  <ul className="dropdown-menu">
-                    <li><NavLink className="dropdown-item" to="/productview">View Products</NavLink></li>
-                    <li><NavLink className="dropdown-item" to="/addproduct">Add Product</NavLink></li>
-                  </ul>
+                  </NavLink>
                 </li>
-
-                <li className="nav-item"><NavLink to="/orders" className="nav-link">Orders</NavLink></li>
-                <li className="nav-item"><NavLink to="/registerview" className="nav-link">Users</NavLink></li>
-                <li className="nav-item"><NavLink to="/feedbackview" className="nav-link">Feedbacks</NavLink></li>
+                <li className="nav-item">
+                  <NavLink to="/categoryview" className="nav-link">
+                    Categories
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink to="/feedbackview" className="nav-link">
+                    Feedbacks
+                  </NavLink>
+                </li>
               </>
             )}
 
-            {/* ---------------- USER MENU ---------------- */}
+            {/* USER MENU */}
             {utype === "user" && (
               <>
                 <li className="nav-item">
-                  <NavLink to="/userOrders" className="nav-link">
+                  <NavLink to="/userorders" className="nav-link">
                     My Orders
                   </NavLink>
                 </li>
 
                 <li className="nav-item position-relative">
                   <NavLink to="/usercart" className="nav-link position-relative">
-                    <i className="bi bi-cart3 fs-5 me-1"></i>
+                    <i className="bi bi-cart3 fs-5"></i>
                     {cartCount > 0 && (
-                      <span
-                        className="position-absolute top-20 start-80 translate-middle badge rounded-pill bg-danger"
-                        style={{ fontSize: "0.7rem" }}
-                      >
-                        {cartCount}
-                      </span>
+                      <span className="cart-badge">{cartCount}</span>
                     )}
                   </NavLink>
                 </li>
 
                 <li className="nav-item">
                   <NavLink to="/aboutus" className="nav-link">
-                    About Us
+                    About
                   </NavLink>
                 </li>
 
                 <li className="nav-item">
                   <NavLink to="/contactus" className="nav-link">
-                    Contact Us
+                    Contact
                   </NavLink>
                 </li>
               </>
             )}
 
-            {/* ---------------- GUEST MENU ---------------- */}
+            {/* GUEST MENU */}
             {!isLoggedIn && (
               <>
-                {/* <li className="nav-item"><NavLink to="/products" className="nav-link">Products</NavLink></li> */}
-                <li className="nav-item"><NavLink to="/aboutus" className="nav-link">About Us</NavLink></li>
-                <li className="nav-item"><NavLink to="/contactus" className="nav-link">Contact Us</NavLink></li>
-                <li className="nav-item"><NavLink to="/login" className="nav-link">Login</NavLink></li>
-                <li className="nav-item"><NavLink to="/register" className="nav-link fw-semibold text-warning">Sign Up</NavLink></li>
+                <li className="nav-item">
+                  <NavLink to="/aboutus" className="nav-link">
+                    About
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink to="/contactus" className="nav-link">
+                    Contact
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink to="/login" className="nav-link">
+                    Login
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink to="/register" className="btn btn-primary ms-2">
+                    Sign Up
+                  </NavLink>
+                </li>
               </>
             )}
 
-            {/* ---------------- USER INFO / LOGOUT ---------------- */}
+            {/* USER DROPDOWN */}
             {(utype === "user" || utype === "admin") && (
-              <li className="nav-item dropdown ms-lg-3">
+              <li className="nav-item dropdown ms-3">
                 <button
-                  className="btn btn-outline-light dropdown-toggle"
-                  type="button"
+                  className="btn btn-outline-primary dropdown-toggle"
                   data-bs-toggle="dropdown"
-                  aria-expanded="false"
                 >
                   <i className="bi bi-person-circle me-2"></i>
-                  {userName ? `Hi, ${userName.split(" ")[0]} 👋` : "Account"}
+                  Hi, {userName?.split(" ")[0]}
                 </button>
+
                 <ul className="dropdown-menu dropdown-menu-end">
-                  {/* <li><NavLink className="dropdown-item" to="/profile">Profile</NavLink></li> */}
-                  {/* <li><hr className="dropdown-divider" /></li> */}
                   <li>
-                    <button className="dropdown-item text-danger" onClick={handleLogout}>
-                      <i className="bi bi-box-arrow-right me-2"></i> Logout
+                    <button
+                      className="dropdown-item text-danger"
+                      onClick={handleLogout}
+                    >
+                      <i className="bi bi-box-arrow-right me-2"></i>
+                      Logout
                     </button>
                   </li>
                 </ul>
