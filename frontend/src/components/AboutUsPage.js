@@ -1,22 +1,55 @@
-import React from 'react'
+import React from "react";
 
 const AboutUsPage = () => {
     return (
         <div className="container my-5">
-            <div className="text-center">
-                <h1 className="mb-4 text-primary fw-bold">About Us</h1>
-                <p>
-                    Welcome to our e-commerce platform! We are dedicated to providing you with the best online shopping experience. Our mission is to offer a wide range of products at competitive prices, ensuring quality and customer satisfaction.
-                </p>
-                <p>
-                    Our team works tirelessly to curate a selection of items that cater to your needs and preferences. Whether you're looking for the latest gadgets, fashionable apparel, or everyday essentials, we've got you covered.
-                </p>
-                <p>
-                    Thank you for choosing us as your trusted shopping destination. We look forward to serving you and making your shopping journey enjoyable and hassle-free.
+            {/* Page Title */}
+            <div className="text-center mb-5">
+                <h1 className="fw-bold text-primary">About & Contact</h1>
+                <p className="text-muted">
+                    Learn more about us and get in touch
                 </p>
             </div>
-        </div>
-    )
-}
 
-export default AboutUsPage
+            {/* About Us */}
+            <section className="mb-5">
+                <h3 className="fw-bold mb-3">About Us</h3>
+                <p className="text-secondary">
+                    Welcome to our e-commerce platform! We are committed to providing
+                    high-quality products at competitive prices while ensuring a smooth
+                    and reliable shopping experience.
+                </p>
+                <p className="text-secondary">
+                    Our team carefully curates products across multiple categories,
+                    focusing on quality, value, and customer satisfaction. Whether you're
+                    shopping for essentials or something special, we aim to serve you
+                    better every day.
+                </p>
+            </section>
+            <hr />
+
+            {/* Contact Us */}
+            <section className="mt-5">
+                <h3 className="fw-bold mb-3">Contact Us</h3>
+                <p className="text-secondary">
+                    Have questions or need support? We'd love to hear from you.
+                </p>
+
+                <div className="mt-4">
+                    <p>
+                        <strong>Email:</strong>{" "}
+                        <a href="mailto:rizwan@gmail.com">rizwan@gmail.com</a>
+                    </p>
+                    <p>
+                        <strong>Phone:</strong> +91-9988765670
+                    </p>
+                    <p>
+                        <strong>Address:</strong> Hubli, Karnataka, India.
+                    </p>
+                </div>
+            </section>
+        </div>
+    );
+};
+
+export default AboutUsPage;

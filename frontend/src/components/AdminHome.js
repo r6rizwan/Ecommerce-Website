@@ -14,7 +14,9 @@ const AdminHome = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/admindashboard");
+        const res = await axios.get(
+          "http://localhost:3001/api/admindashboard"
+        );
         const data = res.data;
 
         setStats({
@@ -27,7 +29,7 @@ const AdminHome = () => {
         setRecentOrders(data.recentOrders || []);
         setRecentReviews(data.recentReviews || []);
       } catch (error) {
-        console.error("Error fetching admin dashboard:", error);
+        console.error("Dashboard fetch error:", error);
       }
     };
 
@@ -35,64 +37,60 @@ const AdminHome = () => {
   }, []);
 
   return (
-    <div className="p-4">
-      <h2 className="fw-bold text-primary mb-4">Welcome, Admin 👋</h2>
+    <section>
+      <h2 className="fw-bold mb-4">Dashboard Overview</h2>
 
-      {/* Stats Cards */}
-      <div className="row g-4 mb-5">
-        {/* Total Sales */}
+      {/* Stats */}
+      <div className="row g-4 mb-4">
         <div className="col-md-3">
-          <div className="card shadow-sm border-0 rounded-4 text-center p-3">
-            <div className="text-muted small mb-1">Total Sales</div>
+          <div className="card p-3 text-center">
+            <small className="text-muted">Total Sales</small>
             <h4 className="fw-bold text-success">
               ₹{stats.totalSales.toLocaleString()}
             </h4>
-            <i className="bi bi-cash-coin text-success fs-3 mt-2"></i>
+            <i className="bi bi-cash-coin fs-3 text-success"></i>
           </div>
         </div>
 
-        {/* Total Orders */}
         <div className="col-md-3">
-          <div className="card shadow-sm border-0 rounded-4 text-center p-3">
-            <div className="text-muted small mb-1">Total Orders</div>
+          <div className="card p-3 text-center">
+            <small className="text-muted">Total Orders</small>
             <h4 className="fw-bold text-primary">{stats.totalOrders}</h4>
-            <i className="bi bi-cart-check text-primary fs-3 mt-2"></i>
+            <i className="bi bi-cart-check fs-3 text-primary"></i>
           </div>
         </div>
 
-        {/* Total Customers */}
         <div className="col-md-3">
-          <div className="card shadow-sm border-0 rounded-4 text-center p-3">
-            <div className="text-muted small mb-1">Total Customers</div>
+          <div className="card p-3 text-center">
+            <small className="text-muted">Customers</small>
             <h4 className="fw-bold text-warning">{stats.totalCustomers}</h4>
-            <i className="bi bi-people text-warning fs-3 mt-2"></i>
+            <i className="bi bi-people fs-3 text-warning"></i>
           </div>
         </div>
 
-        {/* Today's Orders */}
         <div className="col-md-3">
-          <div className="card shadow-sm border-0 rounded-4 text-center p-3">
-            <div className="text-muted small mb-1">Today's Orders</div>
+          <div className="card p-3 text-center">
+            <small className="text-muted">Today’s Orders</small>
             <h4 className="fw-bold text-info">{stats.todayOrders}</h4>
-            <i className="bi bi-calendar-check text-info fs-3 mt-2"></i>
+            <i className="bi bi-calendar-check fs-3 text-info"></i>
           </div>
         </div>
       </div>
 
+      {/* Tables */}
       <div className="row g-4">
-        {/* Recent Orders */}
         <div className="col-md-6">
-          <div className="card shadow-sm border-0 rounded-4 h-100">
-            <div className="card-header bg-light fw-semibold">
-              <i className="bi bi-basket2 me-2"></i>Recent Orders (Top 5)
+          <div className="card h-100">
+            <div className="card-header fw-semibold bg-white">
+              Recent Orders
             </div>
-            <div className="card-body">
+            <div className="card-body p-0">
               {recentOrders.length === 0 ? (
-                <p className="text-center text-muted mb-0">
-                  No recent orders.
+                <p className="text-muted text-center py-4 mb-0">
+                  No recent orders
                 </p>
               ) : (
-                <table className="table table-sm align-middle">
+                <table className="table table-sm mb-0">
                   <thead className="table-light">
                     <tr>
                       <th>#</th>
@@ -102,20 +100,13 @@ const AdminHome = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentOrders.map((order, i) => (
-                      <tr key={order.id}>
+                    {recentOrders.map((o, i) => (
+                      <tr key={o.id}>
                         <td>{i + 1}</td>
-                        <td>{order.customer_name}</td>
-                        <td>{order.product_name}</td>
+                        <td>{o.customer_name}</td>
+                        <td>{o.product_name}</td>
                         <td>
-                          {new Date(order.order_date).toLocaleDateString(
-                            "en-IN",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )}
+                          {new Date(o.order_date).toLocaleDateString("en-IN")}
                         </td>
                       </tr>
                     ))}
@@ -126,44 +117,43 @@ const AdminHome = () => {
           </div>
         </div>
 
-        {/* Recent Reviews */}
         <div className="col-md-6">
-          <div className="card shadow-sm border-0 rounded-4 h-100">
-            <div className="card-header bg-light fw-semibold">
-              <i className="bi bi-chat-square-text me-2"></i>Recent Reviews (Top 5)
+          <div className="card h-100">
+            <div className="card-header fw-semibold bg-white">
+              Recent Reviews
             </div>
-            <div className="card-body">
+            <div className="card-body p-0">
               {recentReviews.length === 0 ? (
-                <p className="text-center text-muted mb-0">
-                  No recent reviews.
+                <p className="text-muted text-center py-4 mb-0">
+                  No recent reviews
                 </p>
               ) : (
-                <table className="table table-sm align-middle">
+                <table className="table table-sm mb-0">
                   <thead className="table-light">
                     <tr>
                       <th>#</th>
-                      <th>User ID</th>
+                      <th>User</th>
                       <th>Comment</th>
                       <th>Rating</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {recentReviews.map((review, i) => (
-                      <tr key={review.id}>
+                    {recentReviews.map((r, i) => (
+                      <tr key={r.id}>
                         <td>{i + 1}</td>
-                        <td>{review.user_id}</td>
-                        <td>{review.comments}</td>
+                        <td>{r.user_id}</td>
+                        <td className="text-truncate" style={{ maxWidth: 180 }}>
+                          {r.comments}
+                        </td>
                         <td>
-                          {review.star_rating && review.star_rating > 0 ? (
-                            [...Array(review.star_rating)].map((_, i) => (
+                          {r.star_rating
+                            ? [...Array(r.star_rating)].map((_, i) => (
                               <i
                                 key={i}
-                                className="bi bi-star-fill text-warning mx-1"
+                                className="bi bi-star-fill text-warning me-1"
                               ></i>
                             ))
-                          ) : (
-                            <span className="text-muted">No Rating</span>
-                          )}
+                            : "—"}
                         </td>
                       </tr>
                     ))}
@@ -174,7 +164,7 @@ const AdminHome = () => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -6,7 +6,6 @@ const OTPScreen = () => {
   const [message, setMessage] = useState(null);
   const [email, setEmail] = useState("");
 
-  // Fetch email from localStorage when component mounts
   useEffect(() => {
     const storedEmail = localStorage.getItem("resetEmail");
     if (!storedEmail) {
@@ -40,42 +39,37 @@ const OTPScreen = () => {
 
       if (data.success) {
         setMessage({ type: "success", text: "OTP verified successfully!" });
-        setTimeout(() => {
-          window.location.href = "/resetpassword";
-        }, 1000);
+        setTimeout(() => (window.location.href = "/resetpassword"), 1000);
       } else {
         setMessage({ type: "error", text: data.message || "Invalid OTP." });
       }
     } catch (err) {
-      console.error("Error verifying OTP:", err);
       setLoading(false);
-      setMessage({ type: "error", text: "Something went wrong. Please try again." });
+      setMessage({
+        type: "error",
+        text: "Something went wrong. Please try again.",
+      });
     }
   };
 
   return (
-    <div className="container my-5">
+    <section className="py-5">
       <div className="row justify-content-center">
-        <div className="col-md-6 col-lg-5">
-          <div className="card shadow p-4 rounded-4 border-0">
-            <h3 className="text-center text-primary fw-bold mb-4">
-              OTP Verification
-            </h3>
+        <div className="col-md-4">
 
-            <p className="text-center text-muted mb-4">
-              We’ve sent an OTP to <strong>{email}</strong>. Please enter it below.
+          <div className="card p-4">
+            <h3 className="fw-bold text-center mb-1">OTP Verification</h3>
+            <p className="text-muted text-center mb-4">
+              Enter the OTP sent to <strong>{email}</strong>
             </p>
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label htmlFor="otp" className="form-label fw-semibold">
-                  Enter OTP
-                </label>
+                <label className="form-label">OTP</label>
                 <input
                   type="number"
-                  id="otp"
                   className="form-control"
-                  placeholder="Enter your 4-digit OTP"
+                  placeholder="4-digit OTP"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   disabled={loading}
@@ -85,7 +79,7 @@ const OTPScreen = () => {
 
               <button
                 type="submit"
-                className="btn btn-primary w-100 mt-2 fw-semibold"
+                className="btn btn-primary w-100"
                 disabled={loading}
               >
                 {loading ? "Verifying..." : "Verify OTP"}
@@ -94,9 +88,10 @@ const OTPScreen = () => {
 
             {message && (
               <div
-                className={`alert mt-3 ${message.type === "success" ? "alert-success" : "alert-danger"
+                className={`alert mt-3 ${message.type === "success"
+                    ? "alert-success"
+                    : "alert-danger"
                   }`}
-                role="alert"
               >
                 {message.text}
               </div>
@@ -111,9 +106,10 @@ const OTPScreen = () => {
               </button>
             </div>
           </div>
+
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

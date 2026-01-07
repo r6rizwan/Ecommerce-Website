@@ -2,8 +2,12 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-dark text-white text-center py-3 mt-auto">
-      <p className="mb-0">&copy; Copyright 2025</p>
+    <footer className="border-top bg-white mt-auto">
+      <div className="container-xl py-3 text-center">
+        <small className="text-muted">
+          © {new Date().getFullYear()} ShopSphere. All rights reserved.
+        </small>
+      </div>
     </footer>
   );
 };

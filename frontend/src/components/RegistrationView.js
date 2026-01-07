@@ -1,175 +1,121 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 const RegistrationView = () => {
     const [RegData, setRegData] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-        fetch('http://localhost:3001/api/getregister')
-            .then(response => response.json())
-            .then(data => setRegData(data))
-            .catch(error => console.error('Error fetching registration data:', error));
+        fetch("http://localhost:3001/api/getregister")
+            .then((res) => res.json())
+            .then((data) => setRegData(data))
+            .catch((err) => console.error(err));
     }, []);
 
     const DeleteReg = async (id) => {
-        try {
-            const response = await fetch(`http://localhost:3001/api/deleteregister/${id}`, {
-                method: 'DELETE',
-            });
+        if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-            if (response.ok) {
-                setRegData(RegData.filter(user => user.id !== id));
+        try {
+            const res = await fetch(
+                `http://localhost:3001/api/deleteregister/${id}`,
+                { method: "DELETE" }
+            );
+
+            if (res.ok) {
+                setRegData((prev) => prev.filter((u) => u.id !== id));
             } else {
-                console.error('Failed to delete the user.');
+                alert("Failed to delete user.");
             }
-        } catch (error) {
-            console.error('Error deleting the user:', error);
+        } catch {
+            alert("Error deleting user.");
         }
-    }
+    };
+
+    const filteredData = RegData.filter((u) =>
+        [u.name, u.email, u.city]
+            .join(" ")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+    );
 
     return (
-        <div className="container my-5">
-            <div className="text-center">
-                <h1 className="mb-4">Registered Users</h1>
-                <table className="table table-bordered">
-                    <thead className="table-dark">
-                        <tr>
-                            <th>Name</th>
-                            <th>Gender</th>
-                            <th>City</th>
-                            <th>Address</th>
-                            <th>Pincode</th>
-                            <th>Email</th>
-                            <th> Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {RegData.map((user, index) => (
-                            <tr key={index}>
-                                <td>{user.name}</td>
-                                <td>{user.gender}</td>
-                                <td>{user.city}</td>
-                                <td>{user.address}</td>
-                                <td>{user.pincode}</td>
-                                <td>{user.email}</td>
-                                <td> <i className='fa fa-trash text-danger' onClick={() => { if (window.confirm('Are you sure you want to delete this user?')) DeleteReg(user.id); }}></i></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <section className="py-4">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <h2 className="fw-bold mb-0">Registered Users</h2>
+
+                <input
+                    type="text"
+                    className="form-control w-md-50"
+                    placeholder="Search by name, email, or city..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </div>
-        </div>
+
+            <div className="card">
+                <div className="table-responsive">
+                    <table className="table align-middle mb-0">
+                        <thead className="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>User</th>
+                                <th>Gender</th>
+                                <th>City</th>
+                                <th>Address</th>
+                                <th>Pincode</th>
+                                <th>Email</th>
+                                <th className="text-end">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {filteredData.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="text-center text-muted py-4">
+                                        No matching users found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredData.map((user, index) => (
+                                    <tr key={user.id}>
+                                        <td>{index + 1}</td>
+
+                                        <td className="fw-semibold">
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div
+                                                    className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center"
+                                                    style={{ width: 36, height: 36 }}
+                                                >
+                                                    {user.name?.charAt(0).toUpperCase()}
+                                                </div>
+                                                {user.name}
+                                            </div>
+                                        </td>
+
+                                        <td>{user.gender}</td>
+                                        <td>{user.city}</td>
+                                        <td className="text-muted small text-truncate" style={{ maxWidth: 200 }}>
+                                            {user.address}
+                                        </td>
+                                        <td>{user.pincode}</td>
+                                        <td className="text-primary">{user.email}</td>
+
+                                        <td className="text-end">
+                                            <button
+                                                className="btn btn-outline-danger btn-sm"
+                                                onClick={() => DeleteReg(user.id)}
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     );
 };
 
 export default RegistrationView;
-
-// import React, { useEffect, useState } from 'react';
-
-// const RegistrationView = () => {
-//   const [RegData, setRegData] = useState([]);
-//   const [searchTerm, setSearchTerm] = useState('');
-
-//   useEffect(() => {
-//     fetch('http://localhost:3001/api/getregister')
-//       .then(response => response.json())
-//       .then(data => setRegData(data))
-//       .catch(error => console.error('Error fetching registration data:', error));
-//   }, []);
-
-//   const DeleteReg = async (id) => {
-//     if (!window.confirm('Are you sure you want to delete this user?')) return;
-
-//     try {
-//       const response = await fetch(`http://localhost:3001/api/deleteregister/${id}`, {
-//         method: 'DELETE',
-//       });
-
-//       if (response.ok) {
-//         setRegData(RegData.filter(user => user.id !== id));
-//       } else {
-//         console.error('Failed to delete the user.');
-//       }
-//     } catch (error) {
-//       console.error('Error deleting the user:', error);
-//     }
-//   };
-
-//   const filteredData = RegData.filter(user =>
-//     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//     user.city.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   return (
-//     <div className="container my-5">
-//       <div className="d-flex justify-content-between align-items-center mb-4">
-//         <h2 className="fw-bold">👥 Registered Users</h2>
-//         <input
-//           type="text"
-//           placeholder="Search by name, email, or city..."
-//           className="form-control w-50 shadow-sm"
-//           value={searchTerm}
-//           onChange={(e) => setSearchTerm(e.target.value)}
-//         />
-//       </div>
-
-//       <div className="table-responsive">
-//         <table className="table align-middle table-hover shadow-sm">
-//           <thead className="table-light">
-//             <tr>
-//               <th scope="col">Profile</th>
-//               <th scope="col">Name</th>
-//               <th scope="col">Gender</th>
-//               <th scope="col">City</th>
-//               <th scope="col">Address</th>
-//               <th scope="col">Pincode</th>
-//               <th scope="col">Email</th>
-//               <th scope="col" className="text-center">Action</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {filteredData.map(user => (
-//               <tr key={user.id}>
-//                 <td>
-//                   <div
-//                     className="rounded-circle bg-primary text-white text-center fw-bold"
-//                     style={{
-//                       width: '40px',
-//                       height: '40px',
-//                       lineHeight: '40px',
-//                       fontSize: '0.9rem',
-//                     }}
-//                   >
-//                     {user.name?.charAt(0).toUpperCase() || 'U'}
-//                   </div>
-//                 </td>
-//                 <td className="fw-semibold">{user.name}</td>
-//                 <td>{user.gender}</td>
-//                 <td>{user.city}</td>
-//                 <td className="text-muted small">{user.address}</td>
-//                 <td>{user.pincode}</td>
-//                 <td className="text-primary">{user.email}</td>
-//                 <td className="text-center">
-//                   <i
-//                     className="fa fa-trash text-danger"
-//                     role="button"
-//                     onClick={() => DeleteReg(user.id)}
-//                   ></i>
-//                 </td>
-//               </tr>
-//             ))}
-//             {filteredData.length === 0 && (
-//               <tr>
-//                 <td colSpan="8" className="text-center text-muted py-4">
-//                   No matching users found.
-//                 </td>
-//               </tr>
-//             )}
-//           </tbody>
-//         </table>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default RegistrationView;

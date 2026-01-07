@@ -1,6 +1,6 @@
-import React from 'react';
-import axios from 'axios';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React from "react";
+import axios from "axios";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const PayBill = () => {
     const [searchParams] = useSearchParams();
@@ -8,13 +8,11 @@ const PayBill = () => {
 
     const uid = localStorage.getItem("userID");
     const price = searchParams.get("price");
-    // const displayPrice = Number(price).toFixed(2);
 
     const paymentHandler = async (e) => {
         e.preventDefault();
 
-        // Always send ₹1 for Razorpay testing
-        const razorpayAmount = 1 * 100;
+        const razorpayAmount = 1 * 100; // ₹1 test
 
         const options = {
             key: "rzp_test_RcpYJahrNYiMkG",
@@ -22,21 +20,21 @@ const PayBill = () => {
             amount: razorpayAmount,
             currency: "INR",
             name: "E-Commerce App",
-            description: "Test Transaction (₹1 only)",
-
+            description: "Test Payment (₹1)",
             handler: async function (response) {
                 try {
-                    await axios.post(`http://localhost:3001/api/paybill/${response.razorpay_payment_id}/${price}`, {
-                        payment_id: response.razorpay_payment_id,
-                        uid: uid,
-                    });
+                    await axios.post(
+                        `http://localhost:3001/api/paybill/${response.razorpay_payment_id}/${price}`,
+                        {
+                            payment_id: response.razorpay_payment_id,
+                            uid: uid,
+                        }
+                    );
 
-                    alert("✅ Order placed successfully!");
                     window.dispatchEvent(new Event("cart-update"));
-                    navigate("/userorders");
+                    navigate("/paysuccess");
                 } catch (error) {
-                    console.error("Error updating payment:", error);
-                    alert("❌ Something went wrong while updating your order.");
+                    alert("Error updating payment.");
                 }
             },
 
@@ -45,12 +43,7 @@ const PayBill = () => {
                 email: "rizwanmulla6@gmail.com",
                 contact: "9620057555",
             },
-            notes: {
-                address: "Rizwan Mulla Corporate Office",
-            },
-            theme: {
-                color: "#3369ccff",
-            },
+            theme: { color: "#0d6efd" },
         };
 
         const pay = new window.Razorpay(options);
@@ -58,12 +51,31 @@ const PayBill = () => {
     };
 
     return (
-        <div className="d-flex justify-content-center align-items-center vh-100">
-            <button className="btn btn-primary btn-lg" onClick={paymentHandler}>
-                {/* Pay ₹1 (Test Mode) for Order of ₹{displayPrice} */}
-                Pay Bill
-            </button>
-        </div>
+        <section className="py-5">
+            <div className="row justify-content-center">
+                <div className="col-md-4">
+
+                    <div className="card p-4 text-center">
+                        <h4 className="fw-bold mb-2">Confirm Payment</h4>
+                        <p className="text-muted mb-4">
+                            Order Amount: <strong>₹{price}</strong>
+                        </p>
+
+                        <button
+                            className="btn btn-primary btn-lg w-100"
+                            onClick={paymentHandler}
+                        >
+                            Pay Now
+                        </button>
+
+                        <small className="text-muted d-block mt-3">
+                            * Test mode: ₹1 will be charged
+                        </small>
+                    </div>
+
+                </div>
+            </div>
+        </section>
     );
 };
 

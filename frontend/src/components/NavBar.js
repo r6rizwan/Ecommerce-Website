@@ -1,16 +1,19 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const Navbar = () => {
   const navigate = useNavigate();
+
   const [utype, setUtype] = useState(localStorage.getItem("utype"));
-  const [cartCount, setCartCount] = useState(0);
   const [userName, setUserName] = useState(localStorage.getItem("userName"));
+  const [cartCount, setCartCount] = useState(0);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
   const isLoggedIn = !!utype;
   const user_id = localStorage.getItem("userID");
 
-  // Fetch cart count (only for users)
   const fetchCartCount = useCallback(async () => {
     if (utype === "user" && user_id) {
       try {
@@ -24,7 +27,6 @@ const Navbar = () => {
     }
   }, [utype, user_id]);
 
-  // Initial fetch + cart-update listener
   useEffect(() => {
     fetchCartCount();
     const handleCartUpdate = () => fetchCartCount();
@@ -32,7 +34,6 @@ const Navbar = () => {
     return () => window.removeEventListener("cart-update", handleCartUpdate);
   }, [fetchCartCount]);
 
-  // Sync user info
   useEffect(() => {
     const syncUser = () => {
       setUtype(localStorage.getItem("utype"));
@@ -46,7 +47,8 @@ const Navbar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleConfirmLogout = () => {
+    setShowLogoutDialog(false);
     localStorage.clear();
     window.dispatchEvent(new Event("app-storage"));
     navigate("/");
@@ -56,146 +58,128 @@ const Navbar = () => {
     utype === "admin" ? "/adminhome" : utype === "user" ? "/userhome" : "/";
 
   return (
-    <nav className="navbar navbar-expand-lg sticky-top">
-      <div className="container">
-        {/* Brand */}
-        <NavLink className="navbar-brand" to={homeLink}>
-          ShopSphere
-        </NavLink>
+    <>
+      <nav className="navbar navbar-expand-lg sticky-top bg-white border-bottom shadow-sm">
+        <div className="container-xl">
+          {/* Brand */}
+          <NavLink className="navbar-brand fw-bold text-primary" to={homeLink}>
+            ShopSphere
+          </NavLink>
 
-        {/* Mobile Toggle */}
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
+          {/* Mobile Toggle */}
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
 
-        {/* Links */}
-        <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-          <ul className="navbar-nav align-items-center">
-
-            {/* Common Home */}
-            <li className="nav-item">
-              <NavLink to={homeLink} className="nav-link">
-                Home
-              </NavLink>
-            </li>
-
-            {/* ADMIN MENU */}
-            {utype === "admin" && (
-              <>
-                <li className="nav-item">
-                  <NavLink to="/orders" className="nav-link">
-                    Orders
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/productview" className="nav-link">
-                    Products
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/categoryview" className="nav-link">
-                    Categories
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/feedbackview" className="nav-link">
-                    Feedbacks
-                  </NavLink>
-                </li>
-              </>
-            )}
-
-            {/* USER MENU */}
-            {utype === "user" && (
-              <>
-                <li className="nav-item">
-                  <NavLink to="/userorders" className="nav-link">
-                    My Orders
-                  </NavLink>
-                </li>
-
-                <li className="nav-item position-relative">
-                  <NavLink to="/usercart" className="nav-link position-relative">
-                    <i className="bi bi-cart3 fs-5"></i>
-                    {cartCount > 0 && (
-                      <span className="cart-badge">{cartCount}</span>
-                    )}
-                  </NavLink>
-                </li>
-
-                <li className="nav-item">
-                  <NavLink to="/aboutus" className="nav-link">
-                    About
-                  </NavLink>
-                </li>
-
-                <li className="nav-item">
-                  <NavLink to="/contactus" className="nav-link">
-                    Contact
-                  </NavLink>
-                </li>
-              </>
-            )}
-
-            {/* GUEST MENU */}
-            {!isLoggedIn && (
-              <>
-                <li className="nav-item">
-                  <NavLink to="/aboutus" className="nav-link">
-                    About
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/contactus" className="nav-link">
-                    Contact
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/login" className="nav-link">
-                    Login
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/register" className="btn btn-primary ms-2">
-                    Sign Up
-                  </NavLink>
-                </li>
-              </>
-            )}
-
-            {/* USER DROPDOWN */}
-            {(utype === "user" || utype === "admin") && (
-              <li className="nav-item dropdown ms-3">
-                <button
-                  className="btn btn-outline-primary dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  <i className="bi bi-person-circle me-2"></i>
-                  Hi, {userName?.split(" ")[0]}
-                </button>
-
-                <ul className="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <button
-                      className="dropdown-item text-danger"
-                      onClick={handleLogout}
-                    >
-                      <i className="bi bi-box-arrow-right me-2"></i>
-                      Logout
-                    </button>
-                  </li>
-                </ul>
+          {/* Links */}
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+              <li className="nav-item">
+                <NavLink to={homeLink} className="nav-link">
+                  Home
+                </NavLink>
               </li>
-            )}
-          </ul>
+
+              {/* ADMIN MENU */}
+              {utype === "admin" && (
+                <>
+                  <li className="nav-item">
+                    <NavLink to="/orders" className="nav-link">Orders</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/productview" className="nav-link">Products</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/categoryview" className="nav-link">Categories</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/feedbackview" className="nav-link">Feedback</NavLink>
+                  </li>
+                </>
+              )}
+
+              {/* USER MENU */}
+              {utype === "user" && (
+                <>
+                  <li className="nav-item">
+                    <NavLink to="/userorders" className="nav-link">My Orders</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/aboutus" className="nav-link">About</NavLink>
+                  </li>
+                  <li className="nav-item position-relative">
+                    <NavLink to="/usercart" className="nav-link">
+                      <i className="bi bi-cart3 fs-5"></i>
+                      {cartCount > 0 && (
+                        <span className="position-absolute top-10 start-90 translate-middle badge rounded-pill bg-primary">
+                          {cartCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  </li>
+                </>
+              )}
+
+              {/* GUEST MENU */}
+              {!isLoggedIn && (
+                <>
+                  <li className="nav-item">
+                    <NavLink to="/aboutus" className="nav-link">About</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/login" className="nav-link">Login</NavLink>
+                  </li>
+                  <li className="nav-item ms-lg-2">
+                    <NavLink to="/register" className="btn btn-primary px-3">
+                      Sign Up
+                    </NavLink>
+                  </li>
+                </>
+              )}
+
+              {/* USER DROPDOWN */}
+              {(utype === "user" || utype === "admin") && (
+                <li className="nav-item dropdown ms-lg-3">
+                  <button
+                    className="btn btn-outline-primary dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                  >
+                    <i className="bi bi-person-circle me-2"></i>
+                    {userName?.split(" ")[0]}
+                  </button>
+
+                  <ul className="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                      <button
+                        className="dropdown-item text-danger"
+                        onClick={() => setShowLogoutDialog(true)}
+                      >
+                        <i className="bi bi-box-arrow-right me-2"></i>
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </li>
+              )}
+            </ul>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* 🔔 Logout Confirmation Dialog */}
+      <ConfirmDialog
+        show={showLogoutDialog}
+        title="Confirm Logout"
+        message="Are you sure you want to logout?"
+        onCancel={() => setShowLogoutDialog(false)}
+        onConfirm={handleConfirmLogout}
+      />
+    </>
   );
 };
 

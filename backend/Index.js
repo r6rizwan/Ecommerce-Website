@@ -145,7 +145,7 @@ app.post('/api/feedback', (req, res) => {
                         console.error("❌ Error inserting feedback:", insertErr);
                         return res.status(500).json({ message: "Error submitting feedback." });
                     }
-                    console.log("✅ Feedback submitted successfully:", { pid, user_id });
+                    console.log("Feedback submitted successfully:", { pid, user_id });
                     return res.status(200).json({ message: "Feedback submitted successfully!" });
                 }
             );
@@ -225,16 +225,16 @@ app.get('/api/getproduct', (req, res) => {
 
 // User Feedbacks
 app.get('/api/userfeedback/:pid/:user_id', (req, res) => {
-  const { pid, user_id } = req.params;
+    const { pid, user_id } = req.params;
 
-  const sql = "SELECT * FROM feedback WHERE pid = ? AND user_id = ?";
-  conn.query(sql, [pid, user_id], (err, results) => {
-    if (err) {
-      console.error("Error fetching feedback:", err);
-      return res.status(500).json({ message: "Error fetching feedback." });
-    }
-    res.json(results[0] || null);
-  });
+    const sql = "SELECT * FROM feedback WHERE pid = ? AND user_id = ?";
+    conn.query(sql, [pid, user_id], (err, results) => {
+        if (err) {
+            console.error("Error fetching feedback:", err);
+            return res.status(500).json({ message: "Error fetching feedback." });
+        }
+        res.json(results[0] || null);
+    });
 });
 
 // Admin Feedbacks
@@ -357,7 +357,6 @@ app.post('/api/authlogin', (req, res) => {
     });
 });
 
-
 app.get('/api/orders', (req, res) => {
     const sqlSelectOrders = `SELECT * FROM customerOrders`;
     conn.query(sqlSelectOrders, (err, results) => {
@@ -370,49 +369,50 @@ app.get('/api/orders', (req, res) => {
     });
 });
 
-//adminOrders api
+// ADMIN ORDERS — GROUPED BY PAYMENT (order_group_id)
 app.get('/api/adminorders', (req, res) => {
     const sql = `
-    SELECT 
-      co.id AS order_id,
-      co.user_id,
-      r.name AS customer_name,
-      r.email AS customer_email,
-      p.product_name,
-      p.image,
-      co.qty,
-      co.price,
-      co.total,
-      co.order_date,
-      co.order_status,
-      co.payment_status
-    FROM customerOrders co
-    JOIN product p ON co.pid = p.id
-    JOIN register r ON co.user_id = r.id
-    ORDER BY 
-      CASE 
-        WHEN co.payment_status = 'Unpaid' THEN 0
-        ELSE 1
-      END,
-      co.order_date DESC
-  `;
+        SELECT
+            co.order_group_id,
+            co.user_id,
+            r.name AS customer_name,
+            r.email AS customer_email,
+            p.product_name,
+            p.image,
+            co.qty,
+            co.price,
+            co.total,
+            co.order_date,
+            co.order_status,
+            co.payment_status
+        FROM customerOrders co
+        JOIN product p ON co.pid = p.id
+        JOIN register r ON co.user_id = r.id
+        WHERE co.order_status != 'Pending'
+        ORDER BY
+            co.order_date DESC
+    `;
 
     conn.query(sql, (err, results) => {
         if (err) {
             console.error("Error fetching admin orders:", err);
-            return res.status(500).json({ message: "Error fetching admin orders" });
+            return res.status(500).json({
+                success: false,
+                message: "Error fetching admin orders"
+            });
         }
 
         if (results.length === 0) {
             return res.status(200).json({ orders: [] });
         }
 
-        // Group orders by order_id
+        // GROUP BY order_group_id
         const groupedOrders = {};
+
         results.forEach((row) => {
-            if (!groupedOrders[row.order_id]) {
-                groupedOrders[row.order_id] = {
-                    id: row.order_id,
+            if (!groupedOrders[row.order_group_id]) {
+                groupedOrders[row.order_group_id] = {
+                    id: row.order_group_id,
                     user_id: row.user_id,
                     customer_name: row.customer_name,
                     customer_email: row.customer_email,
@@ -424,7 +424,7 @@ app.get('/api/adminorders', (req, res) => {
                 };
             }
 
-            groupedOrders[row.order_id].products.push({
+            groupedOrders[row.order_group_id].products.push({
                 product_name: row.product_name,
                 image: row.image,
                 qty: row.qty,
@@ -432,47 +432,88 @@ app.get('/api/adminorders', (req, res) => {
                 total: parseFloat(row.total),
             });
 
-            groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
+            groupedOrders[row.order_group_id].totalAmount += parseFloat(row.total);
         });
 
-        const orders = Object.values(groupedOrders).sort((a, b) => {
-            // unpaid first, then latest
-            if (a.paymentStatus === "Unpaid" && b.paymentStatus !== "Unpaid") return -1;
-            if (a.paymentStatus !== "Unpaid" && b.paymentStatus === "Unpaid") return 1;
-            return new Date(b.orderDate) - new Date(a.orderDate);
+        res.status(200).json({
+            orders: Object.values(groupedOrders)
         });
-
-        res.status(200).json({ orders });
     });
 });
 
+// UPDATE ORDER STATUS (GROUP LEVEL)
+app.put("/api/update-order-status", (req, res) => {
+    const { order_group_id, status } = req.body;
+    console.log('Received update for order_group_id:', order_group_id, 'to status:', status);
 
-// GET user-specific orders (excluding cart/pending)
+    // Validation
+    if (!order_group_id || !status) {
+        return res.status(400).json({
+            success: false,
+            message: "order_group_id and status are required",
+        });
+    }
+
+    const allowedStatuses = ["Confirmed", "Shipped", "Delivered"];
+    if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid order status",
+        });
+    }
+
+    const sql = `
+        UPDATE customerOrders
+        SET order_status = ?
+        WHERE order_group_id = ?
+    `;
+
+    conn.query(sql, [status, order_group_id], (err, result) => {
+        if (err) {
+            console.error("Error updating order status:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Database error while updating order status",
+            });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Order group not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Order status updated successfully",
+        });
+    });
+});
+
+// GET user-specific orders (GROUPED BY PAYMENT)
 app.get('/api/userorders/:user_id', (req, res) => {
     const { user_id } = req.params;
 
     const sql = `
-    SELECT 
-      co.id AS order_id,
-      co.pid,
-      p.product_name,
-      p.image,
-      co.qty,
-      co.price,
-      co.total,
-      co.order_date,
-      co.order_status,
-      co.payment_status
-    FROM customerOrders co
-    JOIN product p ON co.pid = p.id
-    WHERE co.user_id = ?
-    ORDER BY 
-      CASE 
-        WHEN co.payment_status = 'Unpaid' THEN 0  -- unpaid first
-        ELSE 1 
-      END,
-      co.order_date DESC;
-  `;
+        SELECT
+            co.order_group_id,
+            co.pid,
+            p.product_name,
+            p.image,
+            co.qty,
+            co.price,
+            co.total,
+            co.order_date,
+            co.order_status,
+            co.payment_status
+        FROM customerOrders co
+        JOIN product p ON co.pid = p.id
+        WHERE co.user_id = ?
+          AND co.order_status != 'Pending'
+        ORDER BY
+            co.order_date DESC
+    `;
 
     conn.query(sql, [user_id], (err, results) => {
         if (err) {
@@ -484,12 +525,13 @@ app.get('/api/userorders/:user_id', (req, res) => {
             return res.status(200).json({ orders: [] });
         }
 
-        // Group by order_id
+        // GROUP BY order_group_id
         const groupedOrders = {};
+
         results.forEach((row) => {
-            if (!groupedOrders[row.order_id]) {
-                groupedOrders[row.order_id] = {
-                    id: row.order_id,
+            if (!groupedOrders[row.order_group_id]) {
+                groupedOrders[row.order_group_id] = {
+                    id: row.order_group_id,
                     orderDate: row.order_date,
                     status: row.order_status,
                     paymentStatus: row.payment_status,
@@ -498,7 +540,7 @@ app.get('/api/userorders/:user_id', (req, res) => {
                 };
             }
 
-            groupedOrders[row.order_id].products.push({
+            groupedOrders[row.order_group_id].products.push({
                 pid: row.pid,
                 name: row.product_name,
                 image: row.image,
@@ -507,19 +549,12 @@ app.get('/api/userorders/:user_id', (req, res) => {
                 total: parseFloat(row.total),
             });
 
-            groupedOrders[row.order_id].totalAmount += parseFloat(row.total);
+            groupedOrders[row.order_group_id].totalAmount += parseFloat(row.total);
         });
 
-        // Convert to array and sort again — ensures latest first
-        const orders = Object.values(groupedOrders).sort((a, b) => {
-            // unpaid first
-            if (a.paymentStatus === "Unpaid" && b.paymentStatus !== "Unpaid") return -1;
-            if (a.paymentStatus !== "Unpaid" && b.paymentStatus === "Unpaid") return 1;
-            // then by date descending (latest first)
-            return new Date(b.orderDate) - new Date(a.orderDate);
+        res.status(200).json({
+            orders: Object.values(groupedOrders)
         });
-
-        res.status(200).json({ orders });
     });
 });
 
@@ -796,7 +831,6 @@ app.put('/api/updatecart/:id', (req, res) => {
     });
 });
 
-
 // DELETE item from cart
 app.delete('/api/deletefromcart/:id', (req, res) => {
     const { id } = req.params;
@@ -820,29 +854,45 @@ app.post('/api/paybill/:razorpay_id/:price', (req, res) => {
     const { razorpay_id, price } = req.params;
     const { uid } = req.body;
 
-    const sqlInsertPayment = `INSERT INTO payment (user_id, payment_reference, 
-    amount, payment_date) VALUES (?, ?, ?, NOW())`;
+    // 🔑 generate ONE group id for this checkout
+    const orderGroupId = `ORD_${Date.now()}_${uid}`;
 
-    conn.query(sqlInsertPayment, [uid, razorpay_id, price], (err) => {
-        if (err) {
-            console.error("Error inserting payment:", err);
-            return res.status(500).json({ success: false, message: "Error processing payment" });
-        }
+    const sqlInsertPayment = `INSERT INTO payment 
+    (user_id, order_id, payment_reference, amount, 
+    payment_date) VALUES (?, ?, ?, ?, NOW())
+    `;
 
-        // 2) Update customerOrders for this user (mark pending -> confirmed+paid)
-        const sqlUpdateOrders = `UPDATE customerOrders 
-        SET order_status = 'Confirmed', payment_status = 'Paid' 
-        WHERE user_id = ? AND order_status = 'Pending'`;
-
-        conn.query(sqlUpdateOrders, [uid], (err2) => {
-            if (err2) {
-                console.error("Error updating orders:", err2);
-                return res.status(500).json({ success: false, message: "Error updating orders" });
+    conn.query(
+        sqlInsertPayment,
+        [uid, orderGroupId, razorpay_id, price],
+        (err) => {
+            if (err) {
+                console.error("Error inserting payment:", err);
+                return res.status(500).json({ success: false });
             }
 
-            return res.status(200).json({ success: true, message: "Payment recorded and orders confirmed" });
-        });
-    });
+            const sqlUpdateOrders = `UPDATE customerOrders
+            SET
+            order_status = 'Confirmed',
+            payment_status = 'Paid',
+            order_group_id = ?
+            WHERE user_id = ? AND order_status = 'Pending'
+            `;
+
+            conn.query(sqlUpdateOrders, [orderGroupId, uid], (err2) => {
+                if (err2) {
+                    console.error("Error updating orders:", err2);
+                    return res.status(500).json({ success: false });
+                }
+
+                res.status(200).json({
+                    success: true,
+                    message: "Order placed successfully",
+                    order_group_id: orderGroupId
+                });
+            });
+        }
+    );
 });
 
 // Admin Dashboard API

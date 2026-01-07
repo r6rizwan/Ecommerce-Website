@@ -7,127 +7,117 @@ const NewLogin = () => {
   const [formData, setFormData] = useState({ emailOrUsername: "", password: "" });
   const [loading, setLoading] = useState(false);
 
-  // Handle input changes
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      console.log("Login Attempt:", formData);
-
       const response = await axios.post("http://localhost:3001/api/authlogin", {
         username: formData.emailOrUsername,
         password: formData.password,
       });
 
-      console.log("Server Response:", response.data);
-
       if (response.status === 200 && response.data.success) {
-        // Store consistent keys
         localStorage.setItem("userName", response.data.username);
         localStorage.setItem("utype", response.data.utype);
         localStorage.setItem("userID", response.data.user_id);
         localStorage.setItem("isLoggedIn", "true");
 
-        // Notify app of login
         window.dispatchEvent(new Event("app-storage"));
-
-        // Navigate to correct home page
         navigate(response.data.utype === "admin" ? "/adminhome" : "/userhome");
       } else {
-        alert(response.data.message || "Invalid credentials. Please try again.");
-        setFormData((prev) => ({ ...prev, password: "" }));
+        alert(response.data.message || "Invalid credentials");
+        setFormData((p) => ({ ...p, password: "" }));
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert("An error occurred during login. Please try again later.");
-      setFormData((prev) => ({ ...prev, password: "" }));
+      alert("Login failed. Please try again.");
+      setFormData((p) => ({ ...p, password: "" }));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="d-flex justify-content-center py-5 bg-light">
-      <div className="card shadow p-4" style={{ width: "100%", maxWidth: "400px" }}>
-        <h3 className="text-center mb-4 text-primary fw-bold">Login</h3>
+    <section className="py-5">
+      <div className="row justify-content-center">
+        <div className="col-md-4">
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="emailOrUsername" className="form-label">
-              Username or Email
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="emailOrUsername"
-              name="emailOrUsername"
-              placeholder="Enter your username or email"
-              required
-              value={formData.emailOrUsername}
-              onChange={handleChange}
-            />
+          <div className="card p-4">
+            <h3 className="fw-bold text-center mb-1">Welcome Back</h3>
+            <p className="text-muted text-center mb-4">
+              Login to continue shopping
+            </p>
+
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label">Username or Email</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="emailOrUsername"
+                  placeholder="Enter username or email"
+                  required
+                  value={formData.emailOrUsername}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="password"
+                  placeholder="Enter password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary w-100"
+                disabled={loading}
+              >
+                {loading ? "Logging in..." : "Login"}
+              </button>
+            </form>
+
+            <div className="text-center mt-3">
+              <small className="text-muted">
+                Forgot password?{" "}
+                <span
+                  className="text-primary"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate("/forgotpassword")}
+                >
+                  Reset
+                </span>
+              </small>
+            </div>
+
+            <div className="text-center mt-2">
+              <small className="text-muted">
+                Don’t have an account?{" "}
+                <span
+                  className="text-primary fw-semibold"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate("/register")}
+                >
+                  Sign Up
+                </span>
+              </small>
+            </div>
           </div>
 
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
-            <input
-              type="password"
-              className="form-control"
-              id="password"
-              name="password"
-              placeholder="Enter your password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary w-100"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        <div className="text-center mt-3">
-          <small>
-            Don't have an account?{" "}
-            <span
-              className="text-primary"
-              style={{ cursor: "pointer" }}
-              onClick={() => navigate("/register")}
-            >
-              Sign Up
-            </span>
-          </small>
-        </div>
-
-        <div className="text-center mt-3">
-          <small>
-            <span
-              className="text-primary"
-              style={{ cursor: "pointer" }}
-              onClick={() => navigate("/forgotpassword")}
-            >
-              Forgot Password?
-            </span>
-          </small>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

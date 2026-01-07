@@ -1,16 +1,47 @@
-import React from 'react'
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const PaySuccess = () => {
-  return (
-    <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
-      <div className="text-center">
-        <h1 className="mb-4 text-success">Payment Successful!</h1>
-        <p className="lead">
-          Thank you for your purchase. Your payment has been processed successfully.
-        </p>
-      </div>
-    </div>
-  )
-}
+  const navigate = useNavigate();
 
-export default PaySuccess
+  return (
+    <section className="py-5">
+      <div className="row justify-content-center">
+        <div className="col-md-5">
+
+          <div className="card p-5 text-center">
+            <i className="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
+
+            <h3 className="fw-bold text-success mb-2">
+              Payment Successful
+            </h3>
+
+            <p className="text-muted mb-4">
+              Thank you for your purchase. Your order has been placed
+              successfully.
+            </p>
+
+            <div className="d-flex flex-column gap-2">
+              <button
+                className="btn btn-primary"
+                onClick={() => navigate("/userorders")}
+              >
+                View My Orders
+              </button>
+
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => navigate("/userhome")}
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default PaySuccess;

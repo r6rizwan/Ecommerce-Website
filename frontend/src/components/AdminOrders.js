@@ -1,144 +1,175 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const STATUS_FLOW = ["Confirmed", "Shipped", "Delivered"];
+
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get("http://localhost:3001/api/adminorders");
-        if (response.status === 200) {
-          setOrders(response.data.orders);
-        } else {
-          setError("Failed to fetch orders.");
-        }
-      } catch (err) {
-        console.error("Error fetching admin orders:", err);
-        setError("An error occurred while fetching orders.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOrders();
   }, []);
 
-  if (loading)
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get("http://localhost:3001/api/adminorders");
+      setOrders(res.data.orders || []);
+      console.log("Fetched orders:", res.data.orders);
+    } catch {
+      setError("Failed to load orders");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (orderGroupId, newStatus) => {
+    try {
+      await axios.put("http://localhost:3001/api/update-order-status", {
+        order_group_id: orderGroupId,
+        status: newStatus,
+      });
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderGroupId
+            ? { ...o, status: newStatus }
+            : o
+        )
+      );
+
+      fetchOrders();
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update order status");
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="text-center my-5">
-        <div className="spinner-border text-primary" role="status"></div>
-        <span className="ms-2">Loading orders...</span>
+      <div className="d-flex justify-content-center py-5">
+        <div className="spinner-border text-primary"></div>
       </div>
     );
+  }
 
-  if (error)
-    return <p className="text-center text-danger mt-5">{error}</p>;
+  if (error) {
+    return <p className="text-danger text-center">{error}</p>;
+  }
 
   return (
-    <div className="container my-5">
-      <h2 className="text-center mb-4 text-primary fw-bold">All Customer Orders</h2>
+    <section className="py-4">
+      <h2 className="fw-bold text-center mb-4">Admin Orders</h2>
 
-      {orders.length === 0 ? (
-        <p className="text-center fs-5 text-secondary">No orders found.</p>
-      ) : (
+      <div className="container">
         <div className="d-flex flex-column gap-4">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className={`card shadow-sm border-0 rounded-4 ${order.paymentStatus === "Unpaid" ? "border-warning border-2 bg-light" : ""
-                }`}
-            >
-              {/* Header */}
+          {orders.map((order) => {
+            const currentIndex = STATUS_FLOW.indexOf(order.status);
+
+            return (
               <div
-                className={`card-header d-flex justify-content-between align-items-center ${order.paymentStatus === "Unpaid" ? "bg-warning-subtle" : "bg-light"
-                  }`}
+                key={order.id}
+                className="card border-0 shadow-sm"
               >
-                <div>
-                  <h6 className="mb-0 fw-bold text-primary">
-                    Order #{order.id}
-                  </h6>
-                  <small className="text-muted">
-                    {order.customer_name} ({order.customer_email})
-                  </small>
-                </div>
-                <span
-                  className={`badge ${order.status === "Confirmed"
-                      ? "bg-success"
-                      : order.status === "Shipped"
-                        ? "bg-info text-dark"
-                        : order.status === "Delivered"
-                          ? "bg-primary"
-                          : "bg-secondary"
-                    }`}
-                >
-                  {order.status}
-                </span>
-              </div>
-
-              {/* Body */}
-              <div className="card-body">
-                {order.products.map((product, index) => (
-                  <div
-                    key={index}
-                    className="d-flex align-items-center mb-3 border-bottom pb-2"
-                  >
-                    <img
-                      src={`http://localhost:3001/uploads/${product.image}`}
-                      alt={product.product_name}
-                      className="me-3 rounded"
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        objectFit: "cover",
-                      }}
-                      onError={(e) => (e.target.src = "/default-product.png")}
-                    />
-                    <div className="flex-grow-1">
-                      <div className="fw-semibold">{product.product_name}</div>
-                      <div className="text-muted small">
-                        ₹{product.price} × {product.qty} ={" "}
-                        <span className="fw-semibold text-dark">
-                          ₹{product.total}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="d-flex justify-content-between align-items-center mt-3">
+                {/* HEADER */}
+                <div className="card-header bg-white d-flex justify-content-between align-items-center">
                   <div>
-                    <span className="text-muted small">Payment:</span>
+                    <div className="fw-bold">
+                      Order #{order.id}
+                    </div>
+                    <small className="text-muted">
+                      {order.customer_name} · {order.customer_email}
+                    </small>
+                  </div>
+
+                  <div className="d-flex align-items-center gap-2">
                     <span
-                      className={`badge ms-2 ${order.paymentStatus === "Paid"
-                          ? "bg-success"
-                          : "bg-warning text-dark"
+                      className={`badge ${order.paymentStatus === "Paid"
+                        ? "bg-success"
+                        : "bg-warning text-dark"
                         }`}
                     >
                       {order.paymentStatus}
                     </span>
+
+                    <select
+                      className="form-select form-select-sm"
+                      style={{ width: "150px" }}
+                      value={order.status}
+                      onChange={(e) =>
+                        updateStatus(
+                          order.id,
+                          e.target.value
+                        )
+                      }
+                      disabled={order.status === "Delivered"}
+                    >
+                      {STATUS_FLOW.map((s, idx) => (
+                        <option
+                          key={s}
+                          value={s}
+                          disabled={idx < currentIndex}
+                        >
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="fw-bold text-success fs-6">
+                </div>
+
+                {/* PRODUCTS */}
+                <div className="card-body p-0">
+                  {order.products.map((p, i) => (
+                    <div
+                      key={i}
+                      className="d-flex align-items-center px-4 py-3 border-bottom"
+                    >
+                      <img
+                        src={`http://localhost:3001/uploads/${p.image}`}
+                        alt={p.product_name}
+                        className="rounded me-3"
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          objectFit: "cover",
+                        }}
+                      />
+
+                      <div className="flex-grow-1">
+                        <div className="fw-semibold">
+                          {p.product_name}
+                        </div>
+                        <small className="text-muted">
+                          ₹{p.price} × {p.qty}
+                        </small>
+                      </div>
+
+                      <div className="fw-bold text-success">
+                        ₹{p.total.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* FOOTER */}
+                <div className="card-footer bg-white d-flex justify-content-between align-items-center">
+                  <small className="text-muted">
+                    Ordered on{" "}
+                    {new Date(order.orderDate).toLocaleString("en-IN")}
+                  </small>
+
+                  <div className="fw-bold text-success">
                     ₹{order.totalAmount.toFixed(2)}
                   </div>
                 </div>
               </div>
-
-              {/* Footer */}
-              <div className="card-footer bg-white border-top text-muted small">
-                <i className="bi bi-calendar-event me-2"></i>
-                Ordered on:{" "}
-                {new Date(order.orderDate).toLocaleString("en-IN", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
 };
 

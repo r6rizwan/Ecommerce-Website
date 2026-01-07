@@ -10,16 +10,15 @@ const UserOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(
+        const res = await axios.get(
           `http://localhost:3001/api/userorders/${user_id}`
         );
-        if (response.status === 200) {
-          setOrders(response.data.orders);
+        if (res.status === 200) {
+          setOrders(res.data.orders);
         } else {
           setError("Failed to fetch orders.");
         }
       } catch (err) {
-        console.error("Error fetching user orders:", err);
         setError("An error occurred while fetching your orders.");
       } finally {
         setLoading(false);
@@ -29,17 +28,6 @@ const UserOrders = () => {
     if (user_id) fetchOrders();
   }, [user_id]);
 
-  if (loading)
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status"></div>
-        <span className="ms-2">Loading your orders...</span>
-      </div>
-    );
-
-  if (error)
-    return <p className="text-center mt-5 text-danger">{error}</p>;
-
   const handlePayment = (amount) => {
     window.location.href = `/paybill?uid=${user_id}&price=${amount}`;
   };
@@ -48,101 +36,114 @@ const UserOrders = () => {
     window.location.href = `/feedback?product_id=${productId}`;
   };
 
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center py-5">
+        <div className="spinner-border text-primary"></div>
+        <span className="ms-2">Loading orders...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-center text-danger mt-5">{error}</p>;
+  }
+
   return (
-    <div className="container my-5">
-      <h2 className="mb-4 text-center text-primary fw-bold">My Orders</h2>
+    <section className="py-5">
+      <h2 className="fw-bold text-center mb-4">My Orders</h2>
 
       {orders.length === 0 ? (
-        <p className="text-center fs-5 text-secondary">
+        <p className="text-center text-muted fs-5">
           You haven’t placed any orders yet.
         </p>
       ) : (
-        <div className="d-flex flex-column gap-4">
-          {orders.map((order) => {
-            const isUnpaid = order.paymentStatus === "Unpaid";
+        <div className="container" style={{ maxWidth: "900px" }}>
+          <div className="d-flex flex-column gap-4">
 
-            return (
-              <div
-                key={order.id}
-                className={`card shadow-sm border-0 rounded-4 ${isUnpaid ? "border-warning border-2 bg-light" : ""
-                  }`}
-              >
-                {/* Card Header */}
-                <div
-                  className={`card-header d-flex justify-content-between align-items-center rounded-top-4 ${isUnpaid ? "bg-warning-subtle" : "bg-light"
-                    }`}
-                >
-                  <h6
-                    className={`mb-0 fw-bold ${isUnpaid ? "text-warning" : "text-primary"
-                      }`}
-                  >
-                    Order #{order.id}
-                  </h6>
-                  <span
-                    className={`badge px-3 py-2 ${order.status === "Confirmed"
-                      ? "bg-success"
-                      : order.status === "Shipped"
-                        ? "bg-info text-dark"
-                        : order.status === "Delivered"
-                          ? "bg-primary"
-                          : "bg-secondary"
-                      }`}
-                  >
-                    {order.status}
-                  </span>
-                </div>
+            {orders.map((order) => {
+              const isUnpaid = order.paymentStatus === "Unpaid";
 
-                {/* Card Body */}
-                <div className="card-body">
-                  {order.products.map((product, index) => (
-                    <div
-                      key={index}
-                      className="d-flex align-items-center mb-3 border-bottom pb-2 justify-content-between"
+              return (
+                <div key={order.id} className="card p-4">
+
+                  {/* Header */}
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h6 className="fw-bold mb-1">Order #{order.id}</h6>
+                      <small className="text-muted">
+                        Ordered on{" "}
+                        {new Date(order.orderDate).toLocaleString("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </small>
+                    </div>
+
+                    <span
+                      className={`badge ${order.status === "Confirmed"
+                        ? "bg-success"
+                        : order.status === "Shipped"
+                          ? "bg-info text-dark"
+                          : order.status === "Delivered"
+                            ? "bg-primary"
+                            : "bg-secondary"
+                        }`}
                     >
-                      {/* Product Info */}
-                      <div className="d-flex align-items-center">
+                      {order.status}
+                    </span>
+                  </div>
+
+                  {/* Items */}
+                  {order.products.map((product, index) => (
+                    <div key={index}>
+                      <div className="d-flex align-items-start gap-3 py-3">
+
                         <img
                           src={`http://localhost:3001/uploads/${product.image}`}
                           alt={product.name}
-                          className="me-3 rounded"
+                          className="rounded"
                           style={{
-                            width: "60px",
-                            height: "60px",
-                            objectFit: "cover",
+                            width: "70px",
+                            height: "70px",
+                            objectFit: "contain",
                           }}
                           onError={(e) =>
                             (e.target.src = "/default-product.png")
                           }
                         />
+
                         <div className="flex-grow-1">
                           <div className="fw-semibold">{product.name}</div>
                           <div className="text-muted small">
-                            ₹{product.price} × {product.qty} ={" "}
-                            <span className="fw-semibold text-dark">
-                              ₹{product.total}
-                            </span>
+                            ₹{product.price} × {product.qty}
                           </div>
                         </div>
+
+                        {!isUnpaid && order.status === "Delivered" && (
+                          <button
+                            className="btn btn-outline-primary btn-sm"
+                            onClick={() =>
+                              handleReview(product.id || product.pid)
+                            }
+                          >
+                            Review
+                          </button>
+                        )}
                       </div>
 
-                      {/* Review Button */}
-                      {!isUnpaid && (
-                        <button
-                          className="btn btn-outline-primary btn-sm"
-                          onClick={() => handleReview(product.id || product.pid)}
-                        >
-                          <i className="bi bi-star me-1"></i> Review
-                        </button>
+                      {index !== order.products.length - 1 && (
+                        <hr className="my-0" />
                       )}
                     </div>
                   ))}
 
-                  {/* Payment and Total */}
-                  <div className="d-flex justify-content-between align-items-center mt-3">
+                  {/* Footer */}
+                  <div className="d-flex justify-content-between align-items-center pt-3 mt-3 border-top">
                     <div>
-                      <span className="text-muted small">Payment:</span>
+                      <span className="text-muted me-2">Payment:</span>
                       <span
-                        className={`badge ms-2 ${order.paymentStatus === "Paid"
+                        className={`badge ${order.paymentStatus === "Paid"
                           ? "bg-success"
                           : "bg-warning text-dark"
                           }`}
@@ -151,41 +152,30 @@ const UserOrders = () => {
                       </span>
                     </div>
 
-                    <div className="fw-bold text-success fs-6">
+                    <div className="fw-bold text-success fs-5">
                       ₹{order.totalAmount?.toFixed(2)}
                     </div>
                   </div>
 
-                  {/* Pay Now Button (if unpaid) */}
                   {isUnpaid && (
                     <div className="text-end mt-3">
                       <button
-                        className="btn btn-warning fw-semibold"
+                        className="btn btn-warning"
                         onClick={() =>
                           handlePayment(order.totalAmount.toFixed(2))
                         }
                       >
-                        <i className="bi bi-cash-coin me-2"></i> Pay Now
+                        Pay Now
                       </button>
                     </div>
                   )}
                 </div>
-
-                {/* Card Footer */}
-                <div className="card-footer bg-white border-top text-muted small">
-                  <i className="bi bi-calendar-event me-2"></i>
-                  Ordered on:{" "}
-                  {new Date(order.orderDate).toLocaleString("en-IN", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

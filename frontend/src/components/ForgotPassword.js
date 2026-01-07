@@ -5,10 +5,6 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  const handleChange = (e) => {
-    setEmail(e.target.value);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -33,12 +29,10 @@ const ForgotPassword = () => {
       if (data.success) {
         setMessage({
           type: "success",
-          text: "OTP sent successfully to your email.",
+          text: "OTP sent to your registered email.",
         });
         localStorage.setItem("resetEmail", email);
-        setTimeout(() => {
-          window.location.href = "/otpscreen";
-        }, 1000);
+        setTimeout(() => (window.location.href = "/otpscreen"), 1000);
       } else {
         setMessage({
           type: "error",
@@ -46,7 +40,6 @@ const ForgotPassword = () => {
         });
       }
     } catch (err) {
-      console.error("Error:", err);
       setMessage({
         type: "error",
         text: "Something went wrong. Please try again.",
@@ -56,26 +49,25 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="container my-5">
+    <section className="py-5">
       <div className="row justify-content-center">
-        <div className="col-md-6 col-lg-5">
-          <div className="card shadow p-4 rounded-4 border-0">
-            <h3 className="text-center text-primary fw-bold mb-4">
-              Forgot Password
-            </h3>
+        <div className="col-md-4">
+
+          <div className="card p-4">
+            <h3 className="fw-bold text-center mb-1">Forgot Password</h3>
+            <p className="text-muted text-center mb-4">
+              We’ll send an OTP to your email
+            </p>
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label htmlFor="email" className="form-label fw-semibold">
-                  Email Address
-                </label>
+                <label className="form-label">Email Address</label>
                 <input
                   type="email"
-                  id="email"
                   className="form-control"
-                  placeholder="Enter your registered email"
+                  placeholder="Enter registered email"
                   value={email}
-                  onChange={handleChange}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                   required
                 />
@@ -83,7 +75,7 @@ const ForgotPassword = () => {
 
               <button
                 type="submit"
-                className="btn btn-primary w-100 mt-2 fw-semibold"
+                className="btn btn-primary w-100"
                 disabled={loading}
               >
                 {loading ? "Sending OTP..." : "Send OTP"}
@@ -96,15 +88,15 @@ const ForgotPassword = () => {
                     ? "alert-success"
                     : "alert-danger"
                   }`}
-                role="alert"
               >
                 {message.text}
               </div>
             )}
           </div>
+
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

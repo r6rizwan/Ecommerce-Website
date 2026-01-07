@@ -1,221 +1,349 @@
-/* 🌐 Global Styles */
+/* =========================
+   🎨 DESIGN TOKENS (LIGHT)
+========================= */
+:root {
+  /* Backgrounds */
+  --bg-page: #f8f9fa;
+  --bg-surface: #ffffff;
+  --bg-soft: #f1f5ff;
+
+  /* Text */
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+
+  /* Borders */
+  --border-light: #e9ecef;
+  --border-muted: #dee2e6;
+
+  /* Accent */
+  --accent: #0d6efd;
+  --accent-soft: #e7efff;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   🌐 Global Base
+========================= */
+html,
 body {
-  background-color: #f8f9fa;
-  font-family: "Poppins", "Segoe UI", sans-serif;
-  color: #333;
-}
-
-.App {
-  text-align: center;
-}
-
-.navbar {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 🌟 Navbar Dropdown Enhancements */
-.navbar .nav-item .dropdown-toggle {
-  color: rgba(255, 255, 255, 0.75);
-  transition: color 0.2s ease, font-weight 0.2s ease;
-}
-
-.navbar .nav-item .dropdown-toggle:hover,
-.navbar .nav-item .dropdown-toggle:focus,
-.navbar .nav-item.show .dropdown-toggle {
-  color: #fff !important;
-  font-weight: 600;
-}
-
-.dropdown-menu .dropdown-item:hover {
-  background-color: #0d6efd;
-  color: #fff;
-}
-
-/* 🧩 Feedback Card Styling */
-.feedback-card {
-  border-radius: 15px;
-  background: #ffffff;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.feedback-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.feedback-card .card-title {
-  font-weight: 600;
-}
-
-.feedback-card p {
-  font-size: 0.95rem;
-}
-
-.feedback-card i.fa-trash {
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.feedback-card i.fa-trash:hover {
-  color: #b02a37;
-}
-
-/* 🗂️ Category Card Styling */
-.category-card {
-  border-radius: 15px;
-  background-color: #ffffff;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.category-card .card-title {
-  color: #333;
-}
-
-.category-card i.fa-tags {
-  transition: color 0.3s ease;
-}
-
-.category-card:hover i.fa-tags {
-  color: #0d6efd;
-}
-
-/* 📋 Table Styling */
-.table thead th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #333;
-}
-
-.table-hover tbody tr:hover {
-  background-color: #f3f6f9;
-  transition: background-color 0.2s ease;
-}
-
-/* ✍️ Form Controls & Buttons */
-input.form-control,
-.form-control {
-  border-radius: 10px;
-  padding: 10px 15px;
-  border: 1px solid #dee2e6;
-}
-
-.form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-}
-
-.btn-primary {
-  border-radius: 10px;
-  transition: all 0.3s ease-in-out;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
-}
-
-/* 🧱 Card Base Style */
-.card {
-  border-radius: 15px !important;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* 🚪 Navbar Logout Button Final Fix */
-.navbar .btn-link.nav-link {
-  color: rgba(255, 255, 255, 0.75) !important;
-  background: transparent !important;
-  text-decoration: none !important;
-  border: none !important;
-  padding: 0.5rem 1rem !important;
-  box-shadow: none !important;
-  font-weight: 400 !important;
-}
-
-/* Hover and focus states */
-.navbar .btn-link.nav-link:hover,
-.navbar .btn-link.nav-link:focus {
-  color: #fff !important;
-  background: transparent !important;
-  text-decoration: none !important;
-  box-shadow: none !important;
-}
-
-/* Active / clicked states */
-.navbar .btn-link.nav-link:active,
-.navbar .btn-link.nav-link:focus-visible {
-  color: #fff !important;
-  background: transparent !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Optional: align spacing like other links */
-.navbar .nav-item .btn-link.nav-link {
-  margin: 0 !important;
-}
-
-/* 🔄 Animation (optional, for logo or spinner) */
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 🌟 Fix hover issue for the user dropdown button */
-.btn-outline-light {
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.7);
-  transition: all 0.2s ease-in-out;
-}
-
-.btn-outline-light:hover,
-.btn-outline-light:focus {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.8);
-}
-
-/* Optional – make it look more elegant and modern */
-.btn-outline-light.dropdown-toggle::after {
-  vertical-align: 0.15em;
-}
-
-.nav .dropdown-toggle {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.5rem 0;
-}
-
-html, body {
   height: 100%;
 }
 
+body {
+  background-color: var(--bg-page);
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  color: var(--text-primary);
+}
+
 #root {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
 main {
   flex-grow: 1;
+  background-color: var(--bg-page);
 }
 
+/* =========================
+   🧭 Navbar
+========================= */
+.navbar {
+  background-color: var(--bg-surface) !important;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  padding: 0.75rem 0;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--accent);
+}
+
+.navbar .nav-link {
+  color: var(--text-secondary) !important;
+  font-weight: 500;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar .nav-link:hover {
+  background-color: var(--bg-soft);
+  color: var(--accent) !important;
+}
+
+.navbar .nav-link.active {
+  background-color: var(--accent-soft);
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+/* Navbar Dropdown */
+.navbar .dropdown-menu {
+  margin-top: 0.6rem;
+  padding: 0.5rem;
+  border-radius: 14px;
+  border: none;
+  min-width: 200px;
+  background-color: var(--bg-surface);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.navbar .dropdown-item {
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.navbar .dropdown-item:hover {
+  background-color: var(--bg-soft);
+  color: var(--accent);
+}
+
+/* =========================
+   🧱 Cards
+========================= */
+.card {
+  border-radius: 14px;
+  border: none;
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* =========================
+   📋 Tables
+========================= */
+.table {
+  color: var(--text-primary);
+}
+
+.table thead th {
+  background-color: var(--bg-page);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f3f5;
+}
+
+/* =========================
+   ✍️ Forms
+========================= */
+.form-control {
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-muted);
+  color: var(--text-primary);
+}
+
+.form-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+}
+
+/* =========================
+   🔘 Buttons
+========================= */
+.btn {
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+/* =========================
+   🦶 Footer
+========================= */
 footer {
-  margin-top: auto;
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+/* =========================
+   🧑‍💼 Admin Sidebar (Light – Refined)
+========================= */
+.admin-sidebar {
+  background: linear-gradient(180deg, #f8fafc 0%, var(--bg-surface) 100%);
+  border-right: 1px solid var(--border-light);
+  padding: 1rem;
+}
+
+/* Sidebar heading (Admin Panel) */
+.admin-sidebar h5 {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+}
+
+/* Base nav links */
+.admin-sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
+}
+
+/* Hover */
+.admin-sidebar .nav-link:hover {
+  background-color: var(--bg-soft);
+  color: var(--accent);
+}
+
+/* Active */
+.admin-sidebar .nav-link.active {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Left accent bar for active link */
+.admin-sidebar .nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 65%;
+  background-color: var(--accent);
+  border-radius: 4px;
+}
+
+/* Icons */
+.admin-sidebar i {
+  font-size: 1rem;
+  color: inherit;
+}
+
+/* =========================
+   📂 Sidebar Dropdown
+========================= */
+
+/* Dropdown trigger button */
+.admin-sidebar button.nav-link {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Caret */
+.admin-sidebar .dropdown-caret {
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.6;
+  transition: transform 0.25s ease;
+}
+
+.admin-sidebar .dropdown-caret::before {
+  content: "▸";
+}
+
+/* Rotate when open */
+.admin-sidebar .nav-link.open .dropdown-caret {
+  transform: rotate(90deg);
+}
+
+/* =========================
+   📁 Dropdown Children
+========================= */
+.admin-sidebar ul.nav ul {
+  margin-top: 6px;
+  margin-left: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--accent-soft);
+}
+
+.admin-sidebar ul.nav ul .nav-link {
+  font-size: 0.85rem;
+  padding: 0.45rem 0.65rem;
+  color: var(--text-muted);
+  border-radius: 8px;
+}
+
+/* Child hover */
+.admin-sidebar ul.nav ul .nav-link:hover {
+  background-color: var(--bg-soft);
+  color: var(--accent);
+}
+
+/* Child active */
+.admin-sidebar ul.nav ul .nav-link.active {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* =========================
+   🔔 Confirm Dialog
+========================= */
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.confirm-dialog {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: dialogFade 0.2s ease-out;
+}
+
+.confirm-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.confirm-message {
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@keyframes dialogFade {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
