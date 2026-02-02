@@ -42,8 +42,7 @@ Includes user authentication, product management, cart system, orders, and admin
 - Express.js  
 - MySQL  
 - Multer (Image uploads)  
-- Nodemailer  
-- dotenv  
+- Nodemailer
 
 ---
 
@@ -65,8 +64,7 @@ src/
 backend/
 ├── index.js
 ├── uploads/
-├── node_modules/
-└── .env
+└── node_modules
 ```
 
 ---
@@ -87,21 +85,6 @@ cd your-repo-name
 ```bash
 cd backend
 npm install
-```
-
-### Create `.env` file
-```
-DB_HOST=localhost
-DB_USER=root
-DB_PASS=yourpassword
-DB_NAME=ecommerce
-PORT=3001
-
-EMAIL_USER=youremail@gmail.com
-EMAIL_PASS=yourEmailAppPassword
-
-RAZORPAY_KEY_ID=your_key
-RAZORPAY_KEY_SECRET=your_secret
 ```
 
 ### Start backend
