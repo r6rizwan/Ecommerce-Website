@@ -31,6 +31,9 @@ import ProductAddPage from './components/ProductAddPage';
 import ProductView from './components/ProductView';
 import RegistrationView from './components/RegistrationView';
 import FeedbackView from './components/FeedbackView';
+import SuperAdminLayout from './layouts/SuperAdminLayout';
+import SuperAdminLogin from './components/superAdmin/SuperAdminLogin';
+import SuperAdminDashboard from './components/superAdmin/SuperAdminDashboard';
 
 function App() {
   return (
@@ -65,6 +68,13 @@ function App() {
           <Route path="/registerview" element={<RegistrationView />} />
           <Route path="/feedbackview" element={<FeedbackView />} />
         </Route>
+
+        {/* Super Admin Layout */}
+        <Route element={<SuperAdminLayout />}>
+          <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
+        </Route>
+
       </Routes>
     </Router>
   );

@@ -5,7 +5,43 @@ const mysql = require('mysql');
 const multer = require('multer');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
+const adminAuthRoutes = require('./adminAuth');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
+
+// Admin JWT verification middleware
+function verifyAdminToken(req, res, next) {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized: No token provided"
+        });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        const decoded = jwt.verify(token, process.env.ADMIN_JWT_SECRET);
+
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: Admin access only"
+            });
+        }
+
+        req.admin = decoded; // optional use later
+        next();
+    } catch (err) {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired token"
+        });
+    }
+}
 
 // access images from uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -26,6 +62,8 @@ conn.connect(function (err) {
     }
 })
 
+app.set('db', conn);
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 })
@@ -39,37 +77,77 @@ const cors = require('cors');
 const { dir } = require('console');
 app.use(cors());
 
-// Register new user API
-app.post('/api/register', (req, res) => {
+app.use(adminAuthRoutes);
+
+// Register new user API (with password hashing)
+app.post('/api/register', async (req, res) => {
     const { name, gender, city, address, pincode, email, password } = req.body;
 
-    const sqlInsertRegister = `
-        INSERT INTO register (name, gender, city, address, pincode, email)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
+    // Basic validation
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Email and password are required"
+        });
+    }
 
-    conn.query(sqlInsertRegister, [name, gender, city, address, pincode, email], (err, result) => {
-        if (err) {
-            console.error("Error inserting into register:", err);
-            return res.status(500).send("Error registering user");
-        }
+    try {
+        // Step 1: Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        const sqlInsertLogin = `
-            INSERT INTO login (username, password, utype)
-            VALUES (?, ?, ?)
+        // Step 2: Insert into register table
+        const sqlInsertRegister = `
+            INSERT INTO register (name, gender, city, address, pincode, email)
+            VALUES (?, ?, ?, ?, ?, ?)
         `;
 
-        conn.query(sqlInsertLogin, [email, password, 'user'], (err, result) => {
-            if (err) {
-                console.error("Error inserting into login:", err);
-                return res.status(500).send("Error registering user");
-            }
+        conn.query(
+            sqlInsertRegister,
+            [name, gender, city, address, pincode, email],
+            (err, result) => {
+                if (err) {
+                    console.error("Error inserting into register:", err);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Error registering user"
+                    });
+                }
 
-            console.log("User registered successfully:", email);
-            // res.status(200).send("User registered successfully");
-            res.status(200).json({ success: true, message: "User registered successfully" });
+                // Step 3: Insert into login table with hashed password
+                const sqlInsertLogin = `
+                    INSERT INTO login (username, password, utype)
+                    VALUES (?, ?, 'user')
+                `;
+
+                conn.query(
+                    sqlInsertLogin,
+                    [email, hashedPassword],
+                    (err2, result2) => {
+                        if (err2) {
+                            console.error("Error inserting into login:", err2);
+                            return res.status(500).json({
+                                success: false,
+                                message: "Error registering user"
+                            });
+                        }
+
+                        console.log("User registered successfully:", email);
+
+                        res.status(200).json({
+                            success: true,
+                            message: "User registered successfully"
+                        });
+                    }
+                );
+            }
+        );
+    } catch (err) {
+        console.error("Password hashing error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Server error during registration"
         });
-    });
+    }
 });
 
 // Add Category API
@@ -306,57 +384,98 @@ app.delete('/api/deletefeedback/:id', (req, res) => {
     });
 });
 
-// Auth Login API
+// Auth Login API (Supports both plain & hashed passwords)
 app.post('/api/authlogin', (req, res) => {
     const { username, password } = req.body;
 
     // Step 1: Validate input
     if (!username || !password) {
-        return res.status(400).json({ success: false, message: "Username and password are required" });
+        return res.status(400).json({
+            success: false,
+            message: "Username and password are required"
+        });
     }
 
-    // Step 2: Check credentials
-    const sqlSelectLogin = `SELECT * FROM login WHERE username = ? AND password = ?`;
+    // Step 2: Fetch user by username ONLY
+    const sqlSelectLogin = `SELECT * FROM login WHERE username = ?`;
 
-    conn.query(sqlSelectLogin, [username, password], (err, results) => {
+    conn.query(sqlSelectLogin, [username], async (err, results) => {
         if (err) {
             console.error("Error querying login:", err);
-            return res.status(500).json({ success: false, message: "Database error during login" });
+            return res.status(500).json({
+                success: false,
+                message: "Database error during login"
+            });
         }
 
         if (results.length === 0) {
-            console.log("Invalid credentials for user:", username);
-            return res.status(401).json({ success: false, message: "Invalid username or password" });
+            return res.status(401).json({
+                success: false,
+                message: "Invalid username or password"
+            });
         }
 
         const loginRow = results[0];
+        let isPasswordValid = false;
 
-        // Step 3: Fetch user's register record (id and name) so frontend gets the register.id
+        // Step 3: Check password
+        try {
+            if (loginRow.password.startsWith('$2')) {
+                // bcrypt-hashed password (ADMIN / future users)
+                isPasswordValid = await bcrypt.compare(password, loginRow.password);
+            } else {
+                // plain-text password (existing USERS)
+                isPasswordValid = password === loginRow.password;
+            }
+        } catch (err) {
+            console.error("Password check error:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Authentication error"
+            });
+        }
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid username or password"
+            });
+        }
+
+        // Step 4: Fetch register record (only for users)
         const sqlSelectRegister = `SELECT id, name FROM register WHERE email = ?`;
         conn.query(sqlSelectRegister, [username], (errReg, regRows) => {
             if (errReg) {
                 console.error("Error querying register:", errReg);
-                return res.status(500).json({ success: false, message: "Error fetching user details" });
+                return res.status(500).json({
+                    success: false,
+                    message: "Error fetching user details"
+                });
             }
 
             const registerId = regRows.length > 0 ? regRows[0].id : null;
-            const fullName = regRows.length > 0 ? regRows[0].name : loginRow.username;
+            const fullName = regRows.length > 0
+                ? regRows[0].name
+                : loginRow.username;
 
-            console.log("Login successful for user:", username, "(login id:", loginRow.id, ", register id:", registerId, ")");
+            console.log(
+                `Login successful: ${username} (utype: ${loginRow.utype})`
+            );
 
-            // Step 4: Send clean JSON response
+            // Step 5: Success response
             res.status(200).json({
                 success: true,
                 message: "Login successful",
                 username: fullName,
                 utype: loginRow.utype,
-                user_id: registerId || loginRow.id, // prefer register.id for FK relations
+                user_id: registerId || loginRow.id,
                 login_id: loginRow.id
             });
         });
     });
 });
 
+// GET ALL ORDERS API
 app.get('/api/orders', (req, res) => {
     const sqlSelectOrders = `SELECT * FROM customerOrders`;
     conn.query(sqlSelectOrders, (err, results) => {
