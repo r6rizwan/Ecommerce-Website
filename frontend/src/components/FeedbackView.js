@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 
 const FeedbackView = () => {
     const [feedbackData, setFeedbackData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [query, setQuery] = useState("");
 
     useEffect(() => {
         fetch("http://localhost:3001/api/getfeedback")
             .then((res) => res.json())
             .then((data) => setFeedbackData(data))
-            .catch((err) => console.error(err));
+            .catch((err) => console.error(err))
+            .finally(() => setLoading(false));
     }, []);
 
     const deleteFeedback = async (id) => {
@@ -29,9 +32,31 @@ const FeedbackView = () => {
         }
     };
 
+    const filtered = feedbackData.filter((f) => {
+        const q = query.toLowerCase();
+        return (
+            f.user_id?.toString().toLowerCase().includes(q) ||
+            f.pid?.toString().toLowerCase().includes(q) ||
+            f.comments?.toLowerCase().includes(q)
+        );
+    });
+
     return (
         <section className="py-4">
             <h2 className="fw-bold text-center mb-4">User Feedback</h2>
+
+            <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between mb-3">
+                <input
+                    type="search"
+                    className="form-control"
+                    placeholder="Search by user, product, or comment..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+                <span className="text-muted small">
+                    {filtered.length} results
+                </span>
+            </div>
 
             <div className="card">
                 <div className="table-responsive">
@@ -50,14 +75,25 @@ const FeedbackView = () => {
                         </thead>
 
                         <tbody>
-                            {feedbackData.length === 0 ? (
+                            {loading && (
+                                <tr>
+                                    <td colSpan="8" className="text-center py-4">
+                                        <div className="skeleton-line w-60 mx-auto mb-2" />
+                                        <div className="skeleton-line w-40 mx-auto" />
+                                    </td>
+                                </tr>
+                            )}
+
+                            {!loading && filtered.length === 0 && (
                                 <tr>
                                     <td colSpan="8" className="text-center text-muted py-4">
                                         No feedback available.
                                     </td>
                                 </tr>
-                            ) : (
-                                feedbackData.map((f, index) => (
+                            )}
+
+                            {!loading &&
+                                filtered.map((f, index) => (
                                     <tr key={f.id}>
                                         <td>{index + 1}</td>
                                         <td>{f.user_id}</td>
@@ -97,8 +133,7 @@ const FeedbackView = () => {
                                             </button>
                                         </td>
                                     </tr>
-                                ))
-                            )}
+                                ))}
                         </tbody>
                     </table>
                 </div>

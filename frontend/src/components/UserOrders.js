@@ -26,6 +26,10 @@ const UserOrders = () => {
     };
 
     if (user_id) fetchOrders();
+    else {
+      setError("Please log in to view your orders.");
+      setLoading(false);
+    }
   }, [user_id]);
 
   const handlePayment = (amount) => {
@@ -36,12 +40,49 @@ const UserOrders = () => {
     window.location.href = `/feedback?product_id=${productId}`;
   };
 
+  const formatPrice = (value) =>
+    `₹${Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
+
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center py-5">
-        <div className="spinner-border text-primary"></div>
-        <span className="ms-2">Loading orders...</span>
-      </div>
+      <section className="py-5">
+        <h2 className="fw-bold text-center mb-4">My Orders</h2>
+        <div className="container" style={{ maxWidth: "900px" }}>
+          <div className="d-flex flex-column gap-4">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div className="card p-4" key={`sk-order-${idx}`}>
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <div className="skeleton-line w-40 mb-2" />
+                    <div className="skeleton-line w-60" />
+                  </div>
+                  <div className="skeleton-line w-30" />
+                </div>
+                <div className="order-item">
+                  <div className="skeleton-box skeleton-square" />
+                  <div className="flex-grow-1">
+                    <div className="skeleton-line w-70 mb-2" />
+                    <div className="skeleton-line w-50" />
+                  </div>
+                  <div className="skeleton-line w-40" />
+                </div>
+                <div className="order-item">
+                  <div className="skeleton-box skeleton-square" />
+                  <div className="flex-grow-1">
+                    <div className="skeleton-line w-70 mb-2" />
+                    <div className="skeleton-line w-50" />
+                  </div>
+                  <div className="skeleton-line w-40" />
+                </div>
+                <div className="d-flex justify-content-between align-items-center pt-3 mt-3 border-top">
+                  <div className="skeleton-line w-40" />
+                  <div className="skeleton-line w-30" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     );
   }
 
@@ -54,9 +95,18 @@ const UserOrders = () => {
       <h2 className="fw-bold text-center mb-4">My Orders</h2>
 
       {orders.length === 0 ? (
-        <p className="text-center text-muted fs-5">
-          You haven’t placed any orders yet.
-        </p>
+        <div className="text-center py-5">
+          <h4 className="fw-bold mb-2">No orders yet</h4>
+          <p className="text-muted mb-4">
+            Once you place an order, it will show up here.
+          </p>
+          <button
+            className="btn btn-primary px-4"
+            onClick={() => (window.location.href = "/userhome")}
+          >
+            Start Shopping
+          </button>
+        </div>
       ) : (
         <div className="container" style={{ maxWidth: "900px" }}>
           <div className="d-flex flex-column gap-4">
@@ -97,39 +147,40 @@ const UserOrders = () => {
                   {/* Items */}
                   {order.products.map((product, index) => (
                     <div key={index}>
-                      <div className="d-flex align-items-start gap-3 py-3">
+                      <div className="order-item py-3">
 
                         <img
                           src={`http://localhost:3001/uploads/${product.image}`}
                           alt={product.name}
-                          className="rounded"
-                          style={{
-                            width: "70px",
-                            height: "70px",
-                            objectFit: "contain",
+                          className="order-thumb img-frame img-contain"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "/default-product.png";
                           }}
-                          onError={(e) =>
-                            (e.target.src = "/default-product.png")
-                          }
                         />
 
-                        <div className="flex-grow-1">
+                        <div className="order-details">
                           <div className="fw-semibold">{product.name}</div>
-                          <div className="text-muted small">
-                            ₹{product.price} × {product.qty}
+                          <div className="text-muted small mt-1">
+                            {formatPrice(product.price)} × {product.qty}
                           </div>
                         </div>
 
-                        {!isUnpaid && order.status === "Delivered" && (
-                          <button
-                            className="btn btn-outline-primary btn-sm"
-                            onClick={() =>
-                              handleReview(product.id || product.pid)
-                            }
-                          >
-                            Review
-                          </button>
-                        )}
+                        <div className="order-actions">
+                          <div className="fw-bold text-success mb-2">
+                            {formatPrice(product.price * product.qty)}
+                          </div>
+                          {!isUnpaid && order.status === "Delivered" && (
+                            <button
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={() =>
+                                handleReview(product.id || product.pid)
+                              }
+                            >
+                              Review
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {index !== order.products.length - 1 && (
@@ -153,7 +204,7 @@ const UserOrders = () => {
                     </div>
 
                     <div className="fw-bold text-success fs-5">
-                      ₹{order.totalAmount?.toFixed(2)}
+                      {formatPrice(order.totalAmount)}
                     </div>
                   </div>
 

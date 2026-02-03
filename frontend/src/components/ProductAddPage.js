@@ -6,6 +6,10 @@ const ProductAddPage = () => {
     const navigate = useNavigate();
     const [CatData, setCatData] = useState([]);
     const [imageFile, setImageFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("success");
 
     const [formData, setFormData] = useState({
         categoryName: "",
@@ -24,16 +28,26 @@ const ProductAddPage = () => {
             .catch((err) => console.error(err));
     }, []);
 
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleImageChange = (e) => {
-        setImageFile(e.target.files[0]);
+        const file = e.target.files[0];
+        setImageFile(file);
+        setPreviewUrl(file ? URL.createObjectURL(file) : "");
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setMessage("");
 
         try {
             const formDataToSend = new FormData();
@@ -49,13 +63,18 @@ const ProductAddPage = () => {
             );
 
             if (res.status === 200) {
-                alert("Product added successfully!");
+                setMessage("Product added successfully!");
+                setMessageType("success");
                 navigate("/productview");
             } else {
-                alert("Failed to add product.");
+                setMessage("Failed to add product.");
+                setMessageType("danger");
             }
         } catch (err) {
-            alert("Error adding product.");
+            setMessage("Error adding product.");
+            setMessageType("danger");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -69,6 +88,12 @@ const ProductAddPage = () => {
                         <p className="text-muted text-center mb-4">
                             Enter product details
                         </p>
+
+                        {message && (
+                            <div className={`alert alert-${messageType} py-2`} role="alert">
+                                {message}
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
@@ -167,6 +192,15 @@ const ProductAddPage = () => {
                                     accept="image/*"
                                     onChange={handleImageChange}
                                 />
+                                {previewUrl && (
+                                    <div className="mt-3 text-center">
+                                        <img
+                                            src={previewUrl}
+                                            alt="Preview"
+                                            className="img-preview"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mb-4">
@@ -180,8 +214,12 @@ const ProductAddPage = () => {
                                 ></textarea>
                             </div>
 
-                            <button type="submit" className="btn btn-primary w-100">
-                                Add Product
+                            <button
+                                type="submit"
+                                className="btn btn-primary w-100"
+                                disabled={loading}
+                            >
+                                {loading ? "Adding..." : "Add Product"}
                             </button>
                         </form>
                     </div>

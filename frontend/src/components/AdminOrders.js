@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { adminAuthHeader } from "./superAdmin/superAdminAuth";
 
 const STATUS_FLOW = ["Confirmed", "Shipped", "Delivered"];
 
@@ -7,6 +8,7 @@ const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetchOrders();
@@ -14,7 +16,9 @@ const AdminOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/api/adminorders");
+      const res = await axios.get("http://localhost:3001/api/adminorders", {
+        headers: adminAuthHeader(),
+      });
       setOrders(res.data.orders || []);
       console.log("Fetched orders:", res.data.orders);
     } catch {
@@ -29,7 +33,7 @@ const AdminOrders = () => {
       await axios.put("http://localhost:3001/api/update-order-status", {
         order_group_id: orderGroupId,
         status: newStatus,
-      });
+      }, { headers: adminAuthHeader() });
 
       setOrders((prev) =>
         prev.map((o) =>
@@ -47,11 +51,61 @@ const AdminOrders = () => {
     }
   };
 
+  const formatPrice = (value) =>
+    `₹${Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
+
+  const filteredOrders = orders.filter((order) => {
+    if (!query.trim()) return true;
+    const q = query.trim().toLowerCase();
+    return (
+      String(order.id).includes(q) ||
+      String(order.customer_name || "").toLowerCase().includes(q) ||
+      String(order.customer_email || "").toLowerCase().includes(q) ||
+      String(order.status || "").toLowerCase().includes(q) ||
+      String(order.paymentStatus || "").toLowerCase().includes(q)
+    );
+  });
+
   if (loading) {
     return (
-      <div className="d-flex justify-content-center py-5">
-        <div className="spinner-border text-primary"></div>
-      </div>
+      <section className="py-4">
+        <h2 className="fw-bold text-center mb-4">Admin Orders</h2>
+        <div className="container">
+          <div className="d-flex flex-column gap-4">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={`sk-admin-${idx}`} className="card p-4">
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <div className="skeleton-line w-40 mb-2" />
+                    <div className="skeleton-line w-60" />
+                  </div>
+                  <div className="skeleton-line w-30" />
+                </div>
+                <div className="order-item">
+                  <div className="skeleton-box skeleton-square" />
+                  <div className="flex-grow-1">
+                    <div className="skeleton-line w-70 mb-2" />
+                    <div className="skeleton-line w-50" />
+                  </div>
+                  <div className="skeleton-line w-40" />
+                </div>
+                <div className="order-item">
+                  <div className="skeleton-box skeleton-square" />
+                  <div className="flex-grow-1">
+                    <div className="skeleton-line w-70 mb-2" />
+                    <div className="skeleton-line w-50" />
+                  </div>
+                  <div className="skeleton-line w-40" />
+                </div>
+                <div className="d-flex justify-content-between align-items-center pt-3 mt-3 border-top">
+                  <div className="skeleton-line w-40" />
+                  <div className="skeleton-line w-30" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     );
   }
 
@@ -64,8 +118,29 @@ const AdminOrders = () => {
       <h2 className="fw-bold text-center mb-4">Admin Orders</h2>
 
       <div className="container">
+        <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between mb-3">
+          <input
+            type="search"
+            className="form-control"
+            placeholder="Search by order ID, name, email, status..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <span className="text-muted small">
+            {filteredOrders.length} results
+          </span>
+        </div>
         <div className="d-flex flex-column gap-4">
-          {orders.map((order) => {
+          {filteredOrders.length === 0 && (
+            <div className="text-center py-5">
+              <h5 className="fw-bold mb-2">No orders found</h5>
+              <p className="text-muted mb-0">
+                Try a different search term.
+              </p>
+            </div>
+          )}
+
+          {filteredOrders.map((order) => {
             const currentIndex = STATUS_FLOW.indexOf(order.status);
 
             return (
@@ -129,11 +204,10 @@ const AdminOrders = () => {
                       <img
                         src={`http://localhost:3001/uploads/${p.image}`}
                         alt={p.product_name}
-                        className="rounded me-3"
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          objectFit: "cover",
+                        className="order-thumb me-3 img-frame img-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/default-product.png";
                         }}
                       />
 
@@ -142,12 +216,12 @@ const AdminOrders = () => {
                           {p.product_name}
                         </div>
                         <small className="text-muted">
-                          ₹{p.price} × {p.qty}
+                          {formatPrice(p.price)} × {p.qty}
                         </small>
                       </div>
 
                       <div className="fw-bold text-success">
-                        ₹{p.total.toFixed(2)}
+                        {formatPrice(p.total)}
                       </div>
                     </div>
                   ))}
@@ -161,7 +235,7 @@ const AdminOrders = () => {
                   </small>
 
                   <div className="fw-bold text-success">
-                    ₹{order.totalAmount.toFixed(2)}
+                    {formatPrice(order.totalAmount)}
                   </div>
                 </div>
               </div>

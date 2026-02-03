@@ -3,6 +3,9 @@ import axios from "axios";
 
 const CategoryPage = () => {
     const [formData, setFormData] = useState({ categoryName: "" });
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("success");
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -10,6 +13,8 @@ const CategoryPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setMessage("");
 
         try {
             const response = await axios.post(
@@ -18,13 +23,18 @@ const CategoryPage = () => {
             );
 
             if (response.status === 200) {
-                alert("Category added successfully!");
+                setMessage("Category added successfully!");
+                setMessageType("success");
                 setFormData({ categoryName: "" });
             } else {
-                alert("Failed to add category.");
+                setMessage("Failed to add category.");
+                setMessageType("danger");
             }
         } catch (error) {
-            alert("Error adding category.");
+            setMessage("Error adding category.");
+            setMessageType("danger");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -38,6 +48,12 @@ const CategoryPage = () => {
                         <p className="text-muted text-center mb-4">
                             Create a new product category
                         </p>
+
+                        {message && (
+                            <div className={`alert alert-${messageType} py-2`} role="alert">
+                                {message}
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
@@ -53,8 +69,12 @@ const CategoryPage = () => {
                                 />
                             </div>
 
-                            <button type="submit" className="btn btn-primary w-100">
-                                Add Category
+                            <button
+                                type="submit"
+                                className="btn btn-primary w-100"
+                                disabled={loading || !formData.categoryName.trim()}
+                            >
+                                {loading ? "Adding..." : "Add Category"}
                             </button>
                         </form>
                     </div>

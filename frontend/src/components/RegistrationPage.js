@@ -14,6 +14,9 @@ const RegistrationPage = () => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,6 +24,8 @@ const RegistrationPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
 
     try {
       const response = await axios.post(
@@ -29,13 +34,14 @@ const RegistrationPage = () => {
       );
 
       if (response.status === 200 && response.data.success) {
-        alert(response.data.message || "Registration successful!");
         navigate("/login");
       } else {
-        alert(response.data.message || "Registration failed.");
+        setErrorMsg(response.data.message || "Registration failed.");
       }
     } catch (error) {
-      alert("Registration error. Please try again.");
+      setErrorMsg("Registration error. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,6 +55,12 @@ const RegistrationPage = () => {
             <p className="text-muted text-center mb-4">
               Sign up to start shopping
             </p>
+
+            {errorMsg && (
+              <div className="alert alert-danger py-2" role="alert">
+                {errorMsg}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -135,20 +147,34 @@ const RegistrationPage = () => {
 
               <div className="mb-4">
                 <label className="form-label">Password</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  name="password"
-                  placeholder="Minimum 6 characters"
-                  minLength="6"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                />
+                <div className="input-group">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-control"
+                    name="password"
+                    placeholder="Minimum 6 characters"
+                    minLength="6"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </div>
 
-              <button type="submit" className="btn btn-primary w-100">
-                Register
+              <button
+                type="submit"
+                className="btn btn-primary w-100"
+                disabled={loading}
+              >
+                {loading ? "Creating account..." : "Register"}
               </button>
             </form>
 

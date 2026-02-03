@@ -2,12 +2,16 @@ import React, { useState, useEffect } from "react";
 
 const ProductView = () => {
     const [ProductData, setProductData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [query, setQuery] = useState("");
+    const [category, setCategory] = useState("all");
 
     useEffect(() => {
         fetch("http://localhost:3001/api/getproduct")
             .then((res) => res.json())
             .then((data) => setProductData(data))
-            .catch((err) => console.error(err));
+            .catch((err) => console.error(err))
+            .finally(() => setLoading(false));
     }, []);
 
     const DeleteReg = async (id) => {
@@ -35,6 +39,31 @@ const ProductView = () => {
         <section className="py-4">
             <h2 className="fw-bold text-center mb-4">Products</h2>
 
+            <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between mb-3">
+                <input
+                    type="search"
+                    className="form-control"
+                    placeholder="Search products..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+                <select
+                    className="form-select"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    style={{ maxWidth: "200px" }}
+                >
+                    <option value="all">All categories</option>
+                    {[...new Set(ProductData.map((p) => p.category_name))].map(
+                        (c) => (
+                            <option key={c} value={c}>
+                                {c}
+                            </option>
+                        )
+                    )}
+                </select>
+            </div>
+
             <div className="card">
                 <div className="table-responsive">
                     <table className="table align-middle mb-0">
@@ -54,14 +83,37 @@ const ProductView = () => {
                         </thead>
 
                         <tbody>
-                            {ProductData.length === 0 ? (
+                            {loading && (
+                                <tr>
+                                    <td colSpan="10" className="text-center py-4">
+                                        <div className="skeleton-line w-60 mx-auto mb-2" />
+                                        <div className="skeleton-line w-40 mx-auto" />
+                                    </td>
+                                </tr>
+                            )}
+
+                            {!loading &&
+                                ProductData.filter((p) =>
+                                    p.product_name?.toLowerCase().includes(query.toLowerCase())
+                                )
+                                    .filter((p) =>
+                                        category === "all" ? true : p.category_name === category
+                                    ).length === 0 && (
                                 <tr>
                                     <td colSpan="10" className="text-center text-muted py-4">
                                         No products found.
                                     </td>
                                 </tr>
-                            ) : (
-                                ProductData.map((product, index) => (
+                            )}
+
+                            {!loading &&
+                                ProductData.filter((p) =>
+                                    p.product_name?.toLowerCase().includes(query.toLowerCase())
+                                )
+                                    .filter((p) =>
+                                        category === "all" ? true : p.category_name === category
+                                    )
+                                    .map((product, index) => (
                                     <tr key={product.id}>
                                         <td>{index + 1}</td>
                                         <td className="fw-semibold">
@@ -76,15 +128,11 @@ const ProductView = () => {
                                             <img
                                                 src={`http://localhost:3001/uploads/${product.image}`}
                                                 alt={product.product_name}
-                                                style={{
-                                                    width: "60px",
-                                                    height: "60px",
-                                                    objectFit: "cover",
+                                                className="rounded img-frame img-cover img-thumb-sm"
+                                                onError={(e) => {
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = "/default-product.png";
                                                 }}
-                                                className="rounded"
-                                                onError={(e) =>
-                                                    (e.target.src = "/default-product.png")
-                                                }
                                             />
                                         </td>
                                         <td
@@ -102,8 +150,7 @@ const ProductView = () => {
                                             </button>
                                         </td>
                                     </tr>
-                                ))
-                            )}
+                                ))}
                         </tbody>
                     </table>
                 </div>

@@ -18,6 +18,7 @@ import ForgotPassword from './components/ForgotPassword';
 import OtpScreen from './components/OtpScreen';
 import ResetPassword from './components/ResetPassword';
 import UserHome from './components/UserHome';
+import ProductDetail from './components/ProductDetail';
 import UserOrders from './components/UserOrders';
 import UserCart from './components/UserCart';
 import FeedbackPage from './components/FeedbackPage';
@@ -50,6 +51,7 @@ function App() {
           <Route path="/otpscreen" element={<OtpScreen />} />
           <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/userhome" element={<UserHome />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/userorders" element={<UserOrders />} />
           <Route path="/feedback" element={<FeedbackPage />} />
           <Route path="/usercart" element={<UserCart />} />

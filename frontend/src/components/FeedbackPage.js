@@ -13,6 +13,9 @@ const FeedbackPage = () => {
 
     const [hoverRating, setHoverRating] = useState(0);
     const location = useLocation();
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("success");
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
@@ -44,18 +47,21 @@ const FeedbackPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const user_id = localStorage.getItem("userID");
+        setMessage("");
+        setMessageType("danger");
 
         if (!user_id) {
-            alert("Please login to submit feedback.");
+            setMessage("Please login to submit feedback.");
             return;
         }
 
         if (formData.star_rating < 1) {
-            alert("Please select a star rating.");
+            setMessage("Please select a star rating.");
             return;
         }
 
         try {
+            setLoading(true);
             const payload = { ...formData, user_id };
             const res = await axios.post(
                 "http://localhost:3001/api/feedback",
@@ -63,7 +69,8 @@ const FeedbackPage = () => {
             );
 
             if (res.status === 200) {
-                alert("Feedback submitted successfully!");
+                setMessage("Feedback submitted successfully!");
+                setMessageType("success");
                 setFormData({
                     pid: "",
                     aboutProduct: "",
@@ -74,10 +81,13 @@ const FeedbackPage = () => {
                 setHoverRating(0);
             }
         } catch (error) {
-            alert(
+            setMessage(
                 error.response?.data?.message ||
                 "Error submitting feedback. Try again."
             );
+            setMessageType("danger");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -91,6 +101,12 @@ const FeedbackPage = () => {
                         <p className="text-muted text-center mb-4">
                             Share your experience with us
                         </p>
+
+                        {message && (
+                            <div className={`alert alert-${messageType} py-2`} role="alert">
+                                {message}
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit}>
                             {/* Star Rating */}
@@ -154,8 +170,12 @@ const FeedbackPage = () => {
                                 ></textarea>
                             </div>
 
-                            <button type="submit" className="btn btn-primary w-100">
-                                Submit Feedback
+                            <button
+                                type="submit"
+                                className="btn btn-primary w-100"
+                                disabled={loading}
+                            >
+                                {loading ? "Submitting..." : "Submit Feedback"}
                             </button>
                         </form>
                     </div>

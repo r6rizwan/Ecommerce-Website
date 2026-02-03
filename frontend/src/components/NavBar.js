@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import ConfirmDialog from "../components/ConfirmDialog";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [utype, setUtype] = useState(localStorage.getItem("utype"));
   const [userName, setUserName] = useState(localStorage.getItem("userName"));
   const [cartCount, setCartCount] = useState(0);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const isLoggedIn = !!utype;
   const user_id = localStorage.getItem("userID");
@@ -57,6 +59,8 @@ const Navbar = () => {
   const homeLink =
     utype === "admin" ? "/adminhome" : utype === "user" ? "/userhome" : "/";
 
+  const showSearch = utype === "user" && location.pathname.startsWith("/user");
+
   return (
     <>
       <nav className="navbar navbar-expand-lg sticky-top bg-white border-bottom shadow-sm">
@@ -65,6 +69,27 @@ const Navbar = () => {
           <NavLink className="navbar-brand fw-bold text-primary" to={homeLink}>
             ShopSphere
           </NavLink>
+
+          {showSearch && (
+            <form
+              className="navbar-search ms-lg-4 d-none d-lg-flex"
+              onSubmit={(e) => {
+                e.preventDefault();
+                navigate(`/userhome?q=${encodeURIComponent(searchTerm.trim())}`);
+              }}
+            >
+              <input
+                type="search"
+                className="form-control"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button className="btn btn-primary" type="submit">
+                Search
+              </button>
+            </form>
+          )}
 
           {/* Mobile Toggle */}
           <button
@@ -116,7 +141,7 @@ const Navbar = () => {
                     <NavLink to="/usercart" className="nav-link">
                       <i className="bi bi-cart3 fs-5"></i>
                       {cartCount > 0 && (
-                        <span className="position-absolute top-10 start-90 translate-middle badge rounded-pill bg-primary">
+                        <span className="cart-badge">
                           {cartCount}
                         </span>
                       )}

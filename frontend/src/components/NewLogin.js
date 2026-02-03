@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { setAdminToken } from './superAdmin/superAdminAuth';
 
 const NewLogin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ emailOrUsername: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -14,12 +17,17 @@ const NewLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg("");
 
     try {
       const response = await axios.post("http://localhost:3001/api/authlogin", {
         username: formData.emailOrUsername,
         password: formData.password,
       });
+
+      if (response.data.success && response.data.utype === "admin") {
+        setAdminToken(response.data.token);
+      }
 
       if (response.status === 200 && response.data.success) {
         localStorage.setItem("userName", response.data.username);
@@ -30,11 +38,11 @@ const NewLogin = () => {
         window.dispatchEvent(new Event("app-storage"));
         navigate(response.data.utype === "admin" ? "/adminhome" : "/userhome");
       } else {
-        alert(response.data.message || "Invalid credentials");
+        setErrorMsg(response.data.message || "Invalid credentials");
         setFormData((p) => ({ ...p, password: "" }));
       }
     } catch (error) {
-      alert("Login failed. Please try again.");
+      setErrorMsg("Login failed. Please try again.");
       setFormData((p) => ({ ...p, password: "" }));
     } finally {
       setLoading(false);
@@ -52,6 +60,12 @@ const NewLogin = () => {
               Login to continue shopping
             </p>
 
+            {errorMsg && (
+              <div className="alert alert-danger py-2" role="alert">
+                {errorMsg}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Username or Email</label>
@@ -68,21 +82,31 @@ const NewLogin = () => {
 
               <div className="mb-3">
                 <label className="form-label">Password</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  name="password"
-                  placeholder="Enter password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                />
+                <div className="input-group">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-control"
+                    name="password"
+                    placeholder="Enter password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </div>
 
               <button
                 type="submit"
                 className="btn btn-primary w-100"
-                disabled={loading}
+                disabled={loading || !formData.emailOrUsername || !formData.password}
               >
                 {loading ? "Logging in..." : "Login"}
               </button>

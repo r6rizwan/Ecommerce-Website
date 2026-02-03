@@ -151,23 +151,20 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Add Category API
-app.post('/api/addcategory', (req, res) => {
+app.post('/api/addcategory', verifyAdminToken, (req, res) => {
     const { categoryName } = req.body;
 
-    const sqlInsertCategory = `
-        INSERT INTO category (category_name)
-        VALUES (?)
-    `;
-
-    conn.query(sqlInsertCategory, [categoryName], (err, result) => {
-        if (err) {
-            console.error("Error inserting into category:", err);
-            return res.status(500).send("Error adding category");
+    conn.query(
+        `INSERT INTO category (category_name) VALUES (?)`,
+        [categoryName],
+        (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Error adding category");
+            }
+            res.status(200).send("Category added successfully");
         }
-
-        console.log("Category added successfully:", categoryName);
-        res.status(200).send("Category added successfully");
-    });
+    );
 });
 
 // Feedback API
@@ -244,22 +241,20 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Add product with image upload
-app.post('/api/addproduct', upload.single('image'), (req, res) => {
+app.post('/api/addproduct', verifyAdminToken, upload.single('image'), (req, res) => {
     const { categoryName, productName, quantity, uom, price, stock, description } = req.body;
     const image = req.file ? req.file.filename : null;
 
-    const sqlInsertProduct = `
+    const sql = `
         INSERT INTO product (category_name, product_name, qty, uom, price, stock, image, description)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    conn.query(sqlInsertProduct, [categoryName, productName, quantity, uom, price, stock, image, description], (err, result) => {
+    conn.query(sql, [categoryName, productName, quantity, uom, price, stock, image, description], (err) => {
         if (err) {
-            console.error("Error inserting into product:", err);
+            console.error(err);
             return res.status(500).send("Error adding product");
         }
-
-        console.log("Product added successfully:", productName);
         res.status(200).send("Product added successfully");
     });
 });
@@ -328,63 +323,67 @@ app.get('/api/getfeedback', (req, res) => {
     });
 });
 
-app.delete('/api/deleteregister/:id', (req, res) => {
-    const userId = req.params.id;
-    const sqlDeleteRegister = `DELETE FROM register WHERE id = ?`;
-    conn.query(sqlDeleteRegister, [userId], (err, result) => {
-        if (err) {
-            console.error("Error deleting user:", err);
-            return res.status(500).send("Error deleting user");
+// Delete Feedback API
+app.delete('/api/deletefeedback/:id', verifyAdminToken, (req, res) => {
+    conn.query(
+        `DELETE FROM feedback WHERE id = ?`,
+        [req.params.id],
+        (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Error deleting feedback");
+            }
+            res.status(200).send("Feedback deleted successfully");
         }
-
-        console.log("User deleted successfully, ID:", userId);
-        res.status(200).send("User deleted successfully");
-    });
+    );
 });
 
-app.delete('/api/deletecategory/:id', (req, res) => {
-    const categoryId = req.params.id;
-    const sqlDeleteCategory = `DELETE FROM category WHERE id = ?`;
-    conn.query(sqlDeleteCategory, [categoryId], (err, result) => {
-        if (err) {
-            console.error("Error deleting category:", err);
-            return res.status(500).send("Error deleting category");
+// Delete User API
+app.delete('/api/deleteregister/:id', verifyAdminToken, (req, res) => {
+    conn.query(
+        `DELETE FROM register WHERE id = ?`,
+        [req.params.id],
+        (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Error deleting user");
+            }
+            res.status(200).send("User deleted successfully");
         }
-
-        console.log("Category deleted successfully, ID:", categoryId);
-        res.status(200).send("Category deleted successfully");
-    });
+    );
 });
 
-app.delete('/api/deleteproduct/:id', (req, res) => {
-    const productId = req.params.id;
-    const sqlDeleteProduct = `DELETE FROM product WHERE id = ?`;
-    conn.query(sqlDeleteProduct, [productId], (err, result) => {
-        if (err) {
-            console.error("Error deleting product:", err);
-            return res.status(500).send("Error deleting product");
+// Delete Category API
+app.delete('/api/deletecategory/:id', verifyAdminToken, (req, res) => {
+    conn.query(
+        `DELETE FROM category WHERE id = ?`,
+        [req.params.id],
+        (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Error deleting category");
+            }
+            res.status(200).send("Category deleted successfully");
         }
-
-        console.log("Product deleted successfully, ID:", productId);
-        res.status(200).send("Product deleted successfully");
-    });
+    );
 });
 
-app.delete('/api/deletefeedback/:id', (req, res) => {
-    const feedbackId = req.params.id;
-    const sqlDeleteFeedback = `DELETE FROM feedback WHERE id = ?`;
-    conn.query(sqlDeleteFeedback, [feedbackId], (err, result) => {
-        if (err) {
-            console.error("Error deleting feedback:", err);
-            return res.status(500).send("Error deleting feedback");
+// Delete Product API
+app.delete('/api/deleteproduct/:id', verifyAdminToken, (req, res) => {
+    conn.query(
+        `DELETE FROM product WHERE id = ?`,
+        [req.params.id],
+        (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Error deleting product");
+            }
+            res.status(200).send("Product deleted successfully");
         }
-
-        console.log("Feedback deleted successfully, ID:", feedbackId);
-        res.status(200).send("Feedback deleted successfully");
-    });
+    );
 });
 
-// Auth Login API (Supports both plain & hashed passwords)
+// Auth Login API (Supports both plain & hashed passwords + Admin JWT)
 app.post('/api/authlogin', (req, res) => {
     const { username, password } = req.body;
 
@@ -396,7 +395,7 @@ app.post('/api/authlogin', (req, res) => {
         });
     }
 
-    // Step 2: Fetch user by username ONLY
+    // Step 2: Fetch login record by username
     const sqlSelectLogin = `SELECT * FROM login WHERE username = ?`;
 
     conn.query(sqlSelectLogin, [username], async (err, results) => {
@@ -418,13 +417,13 @@ app.post('/api/authlogin', (req, res) => {
         const loginRow = results[0];
         let isPasswordValid = false;
 
-        // Step 3: Check password
+        // Step 3: Password verification (bcrypt + legacy support)
         try {
-            if (loginRow.password.startsWith('$2')) {
-                // bcrypt-hashed password (ADMIN / future users)
+            if (loginRow.password && loginRow.password.startsWith('$2')) {
+                // bcrypt-hashed password
                 isPasswordValid = await bcrypt.compare(password, loginRow.password);
             } else {
-                // plain-text password (existing USERS)
+                // legacy plain-text password
                 isPasswordValid = password === loginRow.password;
             }
         } catch (err) {
@@ -442,7 +441,7 @@ app.post('/api/authlogin', (req, res) => {
             });
         }
 
-        // Step 4: Fetch register record (only for users)
+        // Step 4: Fetch register record (ONLY applicable for users)
         const sqlSelectRegister = `SELECT id, name FROM register WHERE email = ?`;
         conn.query(sqlSelectRegister, [username], (errReg, regRows) => {
             if (errReg) {
@@ -454,22 +453,46 @@ app.post('/api/authlogin', (req, res) => {
             }
 
             const registerId = regRows.length > 0 ? regRows[0].id : null;
-            const fullName = regRows.length > 0
-                ? regRows[0].name
-                : loginRow.username;
+            const fullName =
+                regRows.length > 0 ? regRows[0].name : loginRow.username;
 
-            console.log(
-                `Login successful: ${username} (utype: ${loginRow.utype})`
-            );
+            // Step 5: Generate JWT ONLY for admin
+            let adminToken = null;
+            let tokenType = null;
+            let expiresIn = null;
 
-            // Step 5: Success response
+            if (loginRow.utype === 'admin') {
+                adminToken = jwt.sign(
+                    {
+                        role: 'admin',
+                        adminId: loginRow.id,
+                        username: loginRow.username
+                    },
+                    process.env.ADMIN_JWT_SECRET,
+                    { expiresIn: '6h' }
+                );
+
+                tokenType = 'Bearer';
+                expiresIn = '6h';
+            }
+
+            console.log("Generated admin token:", adminToken),
+
+            console.log(`Login successful: ${username} (${loginRow.utype})`);
+
+            // Step 6: Final response
             res.status(200).json({
                 success: true,
                 message: "Login successful",
                 username: fullName,
                 utype: loginRow.utype,
                 user_id: registerId || loginRow.id,
-                login_id: loginRow.id
+                login_id: loginRow.id,
+
+                // JWT-related fields (admin only)
+                token: adminToken,        // null for users
+                tokenType: tokenType,     // null for users
+                expiresIn: expiresIn      // null for users
             });
         });
     });
@@ -489,7 +512,7 @@ app.get('/api/orders', (req, res) => {
 });
 
 // ADMIN ORDERS — GROUPED BY PAYMENT (order_group_id)
-app.get('/api/adminorders', (req, res) => {
+app.get('/api/adminorders', verifyAdminToken, (req, res) => {
     const sql = `
         SELECT
             co.order_group_id,
@@ -508,8 +531,7 @@ app.get('/api/adminorders', (req, res) => {
         JOIN product p ON co.pid = p.id
         JOIN register r ON co.user_id = r.id
         WHERE co.order_status != 'Pending'
-        ORDER BY
-            co.order_date DESC
+        ORDER BY co.order_date DESC
     `;
 
     conn.query(sql, (err, results) => {
@@ -521,11 +543,6 @@ app.get('/api/adminorders', (req, res) => {
             });
         }
 
-        if (results.length === 0) {
-            return res.status(200).json({ orders: [] });
-        }
-
-        // GROUP BY order_group_id
         const groupedOrders = {};
 
         results.forEach((row) => {
@@ -539,7 +556,7 @@ app.get('/api/adminorders', (req, res) => {
                     status: row.order_status,
                     paymentStatus: row.payment_status,
                     products: [],
-                    totalAmount: 0,
+                    totalAmount: 0
                 };
             }
 
@@ -548,28 +565,24 @@ app.get('/api/adminorders', (req, res) => {
                 image: row.image,
                 qty: row.qty,
                 price: parseFloat(row.price),
-                total: parseFloat(row.total),
+                total: parseFloat(row.total)
             });
 
             groupedOrders[row.order_group_id].totalAmount += parseFloat(row.total);
         });
 
-        res.status(200).json({
-            orders: Object.values(groupedOrders)
-        });
+        res.status(200).json({ orders: Object.values(groupedOrders) });
     });
 });
 
 // UPDATE ORDER STATUS (GROUP LEVEL)
-app.put("/api/update-order-status", (req, res) => {
+app.put("/api/update-order-status", verifyAdminToken, (req, res) => {
     const { order_group_id, status } = req.body;
-    console.log('Received update for order_group_id:', order_group_id, 'to status:', status);
 
-    // Validation
     if (!order_group_id || !status) {
         return res.status(400).json({
             success: false,
-            message: "order_group_id and status are required",
+            message: "order_group_id and status are required"
         });
     }
 
@@ -577,7 +590,7 @@ app.put("/api/update-order-status", (req, res) => {
     if (!allowedStatuses.includes(status)) {
         return res.status(400).json({
             success: false,
-            message: "Invalid order status",
+            message: "Invalid order status"
         });
     }
 
@@ -592,20 +605,20 @@ app.put("/api/update-order-status", (req, res) => {
             console.error("Error updating order status:", err);
             return res.status(500).json({
                 success: false,
-                message: "Database error while updating order status",
+                message: "Database error while updating order status"
             });
         }
 
         if (result.affectedRows === 0) {
             return res.status(404).json({
                 success: false,
-                message: "Order group not found",
+                message: "Order group not found"
             });
         }
 
         res.status(200).json({
             success: true,
-            message: "Order status updated successfully",
+            message: "Order status updated successfully"
         });
     });
 });
@@ -1015,58 +1028,49 @@ app.post('/api/paybill/:razorpay_id/:price', (req, res) => {
 });
 
 // Admin Dashboard API
-app.get("/api/admindashboard", (req, res) => {
+app.get("/api/admindashboard", verifyAdminToken, (req, res) => {
     const queries = {
         totalSales: `SELECT SUM(total) AS totalSales FROM customerOrders WHERE payment_status = 'Paid'`,
         totalOrders: `SELECT COUNT(DISTINCT id) AS totalOrders FROM customerOrders`,
         totalCustomers: `SELECT COUNT(*) AS totalCustomers FROM register`,
         todayOrders: `SELECT COUNT(DISTINCT id) AS todayOrders FROM customerOrders WHERE DATE(order_date) = CURDATE()`,
         recentOrders: `
-      SELECT co.id, r.name AS customer_name, p.product_name, co.order_date
-      FROM customerOrders co
-      JOIN register r ON co.user_id = r.id
-      JOIN product p ON co.pid = p.id
-      ORDER BY co.order_date DESC
-      LIMIT 5;
-    `,
+            SELECT co.id, r.name AS customer_name, p.product_name, co.order_date
+            FROM customerOrders co
+            JOIN register r ON co.user_id = r.id
+            JOIN product p ON co.pid = p.id
+            ORDER BY co.order_date DESC
+            LIMIT 5
+        `,
         recentReviews: `
-      SELECT id,pid, user_id, comments, star_rating
-      FROM feedback
-      ORDER BY id DESC
-      LIMIT 5;
-    `
+            SELECT id, pid, user_id, comments, star_rating
+            FROM feedback
+            ORDER BY id DESC
+            LIMIT 5
+        `
     };
 
-    // Execute all queries in parallel
     Promise.all(
-        Object.values(queries).map((query) => {
-            return new Promise((resolve, reject) => {
-                conn.query(query, (err, result) => {
-                    if (err) reject(err);
-                    else resolve(result);
-                });
+        Object.values(queries).map(
+            (query) =>
+                new Promise((resolve, reject) => {
+                    conn.query(query, (err, result) => {
+                        if (err) reject(err);
+                        else resolve(result);
+                    });
+                })
+        )
+    )
+        .then(([sales, orders, customers, today, recentOrders, reviews]) => {
+            res.status(200).json({
+                totalSales: sales[0]?.totalSales || 0,
+                totalOrders: orders[0]?.totalOrders || 0,
+                totalCustomers: customers[0]?.totalCustomers || 0,
+                todayOrders: today[0]?.todayOrders || 0,
+                recentOrders,
+                recentReviews: reviews
             });
         })
-    )
-        .then(
-            ([
-                totalSalesRes,
-                totalOrdersRes,
-                totalCustomersRes,
-                todayOrdersRes,
-                recentOrdersRes,
-                recentReviewsRes,
-            ]) => {
-                res.status(200).json({
-                    totalSales: totalSalesRes[0]?.totalSales || 0,
-                    totalOrders: totalOrdersRes[0]?.totalOrders || 0,
-                    totalCustomers: totalCustomersRes[0]?.totalCustomers || 0,
-                    todayOrders: todayOrdersRes[0]?.todayOrders || 0,
-                    recentOrders: recentOrdersRes,
-                    recentReviews: recentReviewsRes,
-                });
-            }
-        )
         .catch((err) => {
             console.error("Error fetching admin dashboard:", err);
             res.status(500).json({ message: "Error fetching admin dashboard" });
