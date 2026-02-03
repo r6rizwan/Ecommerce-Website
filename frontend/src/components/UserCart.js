@@ -7,6 +7,13 @@ const UserCart = () => {
   const user_id = localStorage.getItem("userID");
 
   useEffect(() => {
+    if (!user_id) {
+      const guest = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      setCartItems(guest);
+      setLoading(false);
+      return;
+    }
+
     axios
       .get(`http://localhost:3001/api/getcartitems/${user_id}`)
       .then((res) => setCartItems(res.data))
@@ -16,6 +23,19 @@ const UserCart = () => {
 
   const handleQuantityChange = (id, qty) => {
     if (qty < 1) return;
+
+    if (!user_id) {
+      setCartItems((prev) => {
+        const next = prev.map((item) =>
+          item.id === id
+            ? { ...item, qty: Number(qty), total: item.price * qty }
+            : item
+        );
+        localStorage.setItem("guestCart", JSON.stringify(next));
+        return next;
+      });
+      return;
+    }
 
     axios
       .put(`http://localhost:3001/api/updatecart/${id}`, { qty })
@@ -37,6 +57,16 @@ const UserCart = () => {
   };
 
   const handleRemove = (id) => {
+    if (!user_id) {
+      setCartItems((prev) => {
+        const next = prev.filter((i) => i.id !== id);
+        localStorage.setItem("guestCart", JSON.stringify(next));
+        window.dispatchEvent(new Event("cart-update"));
+        return next;
+      });
+      return;
+    }
+
     axios
       .delete(`http://localhost:3001/api/deletefromcart/${id}`)
       .then(() => {
@@ -86,150 +116,159 @@ const UserCart = () => {
   }
 
   return (
-    <section className="py-5">
-      <h2 className="fw-bold text-center mb-4">My Cart</h2>
-
-      {cartItems.length === 0 ? (
-        <div className="text-center py-5">
-          <h4 className="fw-bold mb-2">Your cart is empty</h4>
-          <p className="text-muted mb-4">
-            Looks like you haven’t added anything yet.
+    <section className="section">
+      <div className="container">
+        <div className="text-center mb-4">
+          <h2 className="section-title">My Cart</h2>
+          <p className="section-subtitle mx-auto">
+            Review your items and proceed to checkout.
           </p>
-          <button
-            className="btn btn-primary px-4"
-            onClick={() => (window.location.href = "/userhome")}
-          >
-            Back to Shopping
-          </button>
         </div>
-      ) : (
-        <div className="container" style={{ maxWidth: "1100px" }}>
-          <div className="row g-4">
-            <div className="col-lg-8">
-              <div className="card p-4">
-                {cartItems.map((item, index) => (
-                  <div key={item.id}>
-                    <div className="cart-row py-3">
-                      {/* Image */}
-                      <img
-                        src={`http://localhost:3001/uploads/${item.image}`}
-                        alt={item.product_name}
-                        className="cart-thumb img-frame img-contain img-thumb-md"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/default-product.png";
-                        }}
-                      />
 
-                      {/* Details */}
-                      <div className="cart-details">
-                        <h6 className="fw-semibold mb-1">
-                          {item.product_name}
-                        </h6>
-                        <div className="text-muted mb-2">
-                          ₹{item.price.toFixed(2)}
-                        </div>
+        {cartItems.length === 0 ? (
+          <div className="text-center py-5">
+            <h4 className="fw-bold mb-2">Your cart is empty</h4>
+            <p className="text-muted mb-4">
+              Looks like you haven’t added anything yet.
+            </p>
+            <button
+              className="btn btn-primary px-4"
+              onClick={() => (window.location.href = "/userhome")}
+            >
+              Back to Shopping
+            </button>
+          </div>
+        ) : (
+          <div style={{ maxWidth: "1100px" }} className="mx-auto">
+            <div className="row g-4">
+              <div className="col-lg-8">
+                <div className="card p-4">
+                  {cartItems.map((item, index) => (
+                    <div key={item.id}>
+                      <div className="cart-row py-3">
+                        {/* Image */}
+                        <img
+                          src={`http://localhost:3001/uploads/${item.image}`}
+                          alt={item.product_name}
+                          className="cart-thumb img-frame img-contain img-thumb-md"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "/default-product.png";
+                          }}
+                        />
 
-                        <div className="d-flex align-items-center gap-3 flex-wrap">
-                          {/* Quantity */}
-                          <div className="qty-stepper">
-                            <button
-                              className="btn btn-light btn-sm"
-                              onClick={() => handleStep(item.id, item.qty, -1)}
-                              aria-label="Decrease quantity"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.qty}
-                              onChange={(e) =>
-                                handleQuantityChange(item.id, e.target.value)
-                              }
-                              className="form-control form-control-sm text-center"
-                              aria-label="Quantity"
-                            />
-                            <button
-                              className="btn btn-light btn-sm"
-                              onClick={() => handleStep(item.id, item.qty, 1)}
-                              aria-label="Increase quantity"
-                            >
-                              +
-                            </button>
+                        {/* Details */}
+                        <div className="cart-details">
+                          <h6 className="fw-semibold mb-1">
+                            {item.product_name}
+                          </h6>
+                          <div className="text-muted mb-2">
+                            ₹{item.price.toFixed(2)}
                           </div>
 
-                          {/* Item Total */}
-                          <span className="fw-bold text-success">
-                            ₹{(item.price * item.qty).toFixed(2)}
-                          </span>
+                          <div className="d-flex align-items-center gap-3 flex-wrap">
+                            {/* Quantity */}
+                            <div className="qty-stepper">
+                              <button
+                                className="btn btn-light btn-sm"
+                                onClick={() => handleStep(item.id, item.qty, -1)}
+                                aria-label="Decrease quantity"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min="1"
+                                value={item.qty}
+                                onChange={(e) =>
+                                  handleQuantityChange(item.id, e.target.value)
+                                }
+                                className="form-control form-control-sm text-center"
+                                aria-label="Quantity"
+                              />
+                              <button
+                                className="btn btn-light btn-sm"
+                                onClick={() => handleStep(item.id, item.qty, 1)}
+                                aria-label="Increase quantity"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            {/* Item Total */}
+                            <span className="fw-bold text-success">
+                              ₹{(item.price * item.qty).toFixed(2)}
+                            </span>
+                          </div>
                         </div>
+
+                        {/* Delete */}
+                        <button
+                          className="btn btn-outline-danger btn-sm cart-remove"
+                          onClick={() => handleRemove(item.id)}
+                          aria-label="Remove item"
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
                       </div>
 
-                      {/* Delete */}
-                      <button
-                        className="btn btn-outline-danger btn-sm cart-remove"
-                        onClick={() => handleRemove(item.id)}
-                        aria-label="Remove item"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
+                      {index !== cartItems.length - 1 && <hr className="my-0" />}
                     </div>
-
-                    {index !== cartItems.length - 1 && <hr className="my-0" />}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="col-lg-4 align-self-start">
-              <div className="card p-4 cart-summary">
-                <h5 className="fw-bold mb-3">Order Summary</h5>
+              <div className="col-lg-4 align-self-start">
+                <div className="card p-4 cart-summary">
+                  <h5 className="fw-bold mb-3">Order Summary</h5>
 
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">Subtotal</span>
-                  <span>₹{totalPrice.toFixed(2)}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-muted">Shipping</span>
-                  <span>₹{shippingEstimate.toFixed(2)}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-3">
-                  <span className="text-muted">Tax (est.)</span>
-                  <span>₹{taxEstimate.toFixed(2)}</span>
-                </div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Subtotal</span>
+                    <span>₹{totalPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Shipping</span>
+                    <span>₹{shippingEstimate.toFixed(2)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-3">
+                    <span className="text-muted">Tax (est.)</span>
+                    <span>₹{taxEstimate.toFixed(2)}</span>
+                  </div>
 
-                <div className="input-group mb-3">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Promo code"
-                  />
-                  <button className="btn btn-outline-secondary" type="button">
-                    Apply
-                  </button>
-                </div>
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Promo code"
+                    />
+                    <button className="btn btn-outline-secondary" type="button">
+                      Apply
+                    </button>
+                  </div>
 
-                <div className="d-flex justify-content-between align-items-center border-top pt-3 mb-3">
-                  <span className="fw-semibold">Total</span>
-                  <span className="fw-bold text-success">
-                    ₹{grandTotal.toFixed(2)}
-                  </span>
-                </div>
+                  <div className="d-flex justify-content-between align-items-center border-top pt-3 mb-3">
+                    <span className="fw-semibold">Total</span>
+                    <span className="fw-bold text-success">
+                      ₹{grandTotal.toFixed(2)}
+                    </span>
+                  </div>
 
                 <button
                   className="btn btn-primary btn-lg w-100"
                   onClick={() =>
-                    (window.location.href = `/paybill?uid=${user_id}&price=${totalPrice.toFixed(2)}`)
+                    user_id
+                      ? (window.location.href = `/paybill?uid=${user_id}&price=${totalPrice.toFixed(2)}`)
+                      : (window.location.href = "/login?redirect=/usercart")
                   }
                 >
-                  Checkout
+                  {user_id ? "Checkout" : "Sign in to checkout"}
                 </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 };

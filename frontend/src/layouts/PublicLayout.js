@@ -8,13 +8,11 @@ const PublicLayout = () => {
     const isAdminRoute = location.pathname.startsWith("/admin");
 
     return (
-        <div className="d-flex flex-column min-vh-100 bg-light">
+        <div className="d-flex flex-column min-vh-100">
             {!isAdminRoute && <NavBar />}
 
-            <main className="flex-grow-1 py-4">
-                <div className="container-xl">
-                    <Outlet />
-                </div>
+            <main className="flex-grow-1">
+                <Outlet />
             </main>
 
             {!isAdminRoute && <Footer />}

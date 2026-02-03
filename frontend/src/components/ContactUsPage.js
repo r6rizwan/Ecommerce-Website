@@ -2,7 +2,7 @@ import React from "react";
 
 const ContactUsPage = () => {
   return (
-    <section className="py-5">
+    <section className="section">
       <div className="container" style={{ maxWidth: "900px" }}>
         <div className="text-center mb-4">
           <h1 className="fw-bold mb-2">Contact Us</h1>

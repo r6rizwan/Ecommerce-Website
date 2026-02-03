@@ -45,10 +45,16 @@ const UserOrders = () => {
 
   if (loading) {
     return (
-      <section className="py-5">
-        <h2 className="fw-bold text-center mb-4">My Orders</h2>
-        <div className="container" style={{ maxWidth: "900px" }}>
-          <div className="d-flex flex-column gap-4">
+      <section className="section">
+        <div className="container">
+          <div className="text-center mb-4">
+            <h2 className="section-title">My Orders</h2>
+            <p className="section-subtitle mx-auto">
+              Track purchases, payment status, and delivery progress.
+            </p>
+          </div>
+          <div style={{ maxWidth: "900px" }} className="mx-auto">
+            <div className="d-flex flex-column gap-4">
             {Array.from({ length: 3 }).map((_, idx) => (
               <div className="card p-4" key={`sk-order-${idx}`}>
                 <div className="d-flex justify-content-between align-items-start mb-3">
@@ -80,6 +86,7 @@ const UserOrders = () => {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         </div>
       </section>
@@ -91,25 +98,31 @@ const UserOrders = () => {
   }
 
   return (
-    <section className="py-5">
-      <h2 className="fw-bold text-center mb-4">My Orders</h2>
-
-      {orders.length === 0 ? (
-        <div className="text-center py-5">
-          <h4 className="fw-bold mb-2">No orders yet</h4>
-          <p className="text-muted mb-4">
-            Once you place an order, it will show up here.
+    <section className="section">
+      <div className="container">
+        <div className="text-center mb-4">
+          <h2 className="section-title">My Orders</h2>
+          <p className="section-subtitle mx-auto">
+            Track purchases, payment status, and delivery progress.
           </p>
-          <button
-            className="btn btn-primary px-4"
-            onClick={() => (window.location.href = "/userhome")}
-          >
-            Start Shopping
-          </button>
         </div>
-      ) : (
-        <div className="container" style={{ maxWidth: "900px" }}>
-          <div className="d-flex flex-column gap-4">
+
+        {orders.length === 0 ? (
+          <div className="text-center py-5">
+            <h4 className="fw-bold mb-2">No orders yet</h4>
+            <p className="text-muted mb-4">
+              Once you place an order, it will show up here.
+            </p>
+            <button
+              className="btn btn-primary px-4"
+              onClick={() => (window.location.href = "/userhome")}
+            >
+              Start Shopping
+            </button>
+          </div>
+        ) : (
+          <div style={{ maxWidth: "900px" }} className="mx-auto">
+            <div className="d-flex flex-column gap-4">
 
             {orders.map((order) => {
               const isUnpaid = order.paymentStatus === "Unpaid";
@@ -224,8 +237,9 @@ const UserOrders = () => {
               );
             })}
           </div>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </section>
   );
 };

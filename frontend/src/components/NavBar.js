@@ -26,6 +26,13 @@ const Navbar = () => {
       } catch (error) {
         console.error("Error fetching cart count:", error);
       }
+      return;
+    }
+
+    if (!utype) {
+      const guest = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      const count = guest.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+      setCartCount(count);
     }
   }, [utype, user_id]);
 
@@ -59,7 +66,7 @@ const Navbar = () => {
   const homeLink =
     utype === "admin" ? "/adminhome" : utype === "user" ? "/userhome" : "/";
 
-  const showSearch = utype === "user" && location.pathname.startsWith("/user");
+  const showSearch = location.pathname !== "/super-admin/login";
 
   return (
     <>
@@ -72,22 +79,24 @@ const Navbar = () => {
 
           {showSearch && (
             <form
-              className="navbar-search ms-lg-4 d-none d-lg-flex"
+              className="navbar-search ms-lg-4 d-none d-lg-flex flex-grow-1"
               onSubmit={(e) => {
                 e.preventDefault();
                 navigate(`/userhome?q=${encodeURIComponent(searchTerm.trim())}`);
               }}
             >
-              <input
-                type="search"
-                className="form-control"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <button className="btn btn-primary" type="submit">
-                Search
-              </button>
+              <div className="input-group">
+                <input
+                  type="search"
+                  className="form-control"
+                  placeholder="Search for products, brands, or categories"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button className="btn btn-primary" type="submit">
+                  Search
+                </button>
+              </div>
             </form>
           )}
 
@@ -104,6 +113,30 @@ const Navbar = () => {
           {/* Links */}
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+              {showSearch && (
+                <li className="nav-item d-lg-none">
+                  <form
+                    className="navbar-search my-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      navigate(`/userhome?q=${encodeURIComponent(searchTerm.trim())}`);
+                    }}
+                  >
+                    <div className="input-group">
+                      <input
+                        type="search"
+                        className="form-control"
+                        placeholder="Search products..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <button className="btn btn-primary" type="submit">
+                        Search
+                      </button>
+                    </div>
+                  </form>
+                </li>
+              )}
               <li className="nav-item">
                 <NavLink to={homeLink} className="nav-link">
                   Home
@@ -128,12 +161,14 @@ const Navbar = () => {
                 </>
               )}
 
-              {/* USER MENU */}
-              {utype === "user" && (
+              {/* USER/ GUEST MENU */}
+              {(utype === "user" || !utype) && (
                 <>
-                  <li className="nav-item">
-                    <NavLink to="/userorders" className="nav-link">My Orders</NavLink>
-                  </li>
+                  {utype === "user" && (
+                    <li className="nav-item">
+                      <NavLink to="/userorders" className="nav-link">My Orders</NavLink>
+                    </li>
+                  )}
                   <li className="nav-item">
                     <NavLink to="/aboutus" className="nav-link">About</NavLink>
                   </li>

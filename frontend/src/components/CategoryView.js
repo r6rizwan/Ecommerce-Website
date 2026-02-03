@@ -34,8 +34,13 @@ const CategoryView = () => {
     };
 
     return (
-        <section className="py-4">
-            <h2 className="fw-bold text-center mb-4">Categories</h2>
+        <section className="section">
+            <div className="text-center mb-4">
+                <h2 className="section-title">Categories</h2>
+                <p className="section-subtitle mx-auto">
+                    Organize products with clean, searchable categories.
+                </p>
+            </div>
 
             <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between mb-3">
                 <input

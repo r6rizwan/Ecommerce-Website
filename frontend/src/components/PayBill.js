@@ -51,9 +51,10 @@ const PayBill = () => {
     };
 
     return (
-        <section className="py-5">
-            <div className="row justify-content-center">
-                <div className="col-md-4">
+        <section className="section">
+            <div className="container">
+                <div className="row justify-content-center">
+                    <div className="col-md-4">
 
                     <div className="card p-4 text-center">
                         <h4 className="fw-bold mb-2">Confirm Payment</h4>
@@ -73,6 +74,7 @@ const PayBill = () => {
                         </small>
                     </div>
 
+                    </div>
                 </div>
             </div>
         </section>

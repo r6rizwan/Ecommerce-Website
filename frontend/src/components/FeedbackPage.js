@@ -92,16 +92,18 @@ const FeedbackPage = () => {
     };
 
     return (
-        <section className="py-5">
-            <div className="row justify-content-center">
-                <div className="col-md-5">
+        <section className="section">
+            <div className="container">
+                <div className="text-center mb-4">
+                    <h2 className="section-title">Product Feedback</h2>
+                    <p className="section-subtitle mx-auto">
+                        Share your experience and help others make better choices.
+                    </p>
+                </div>
+                <div className="row justify-content-center">
+                    <div className="col-md-5">
 
                     <div className="card p-4">
-                        <h3 className="fw-bold text-center mb-1">Product Feedback</h3>
-                        <p className="text-muted text-center mb-4">
-                            Share your experience with us
-                        </p>
-
                         {message && (
                             <div className={`alert alert-${messageType} py-2`} role="alert">
                                 {message}
@@ -180,6 +182,7 @@ const FeedbackPage = () => {
                         </form>
                     </div>
 
+                    </div>
                 </div>
             </div>
         </section>

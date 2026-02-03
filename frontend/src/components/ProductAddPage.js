@@ -79,16 +79,17 @@ const ProductAddPage = () => {
     };
 
     return (
-        <section className="py-5">
+        <section className="section">
+            <div className="text-center mb-4">
+                <h2 className="section-title">Add Product</h2>
+                <p className="section-subtitle mx-auto">
+                    Add new inventory with pricing, stock, and images.
+                </p>
+            </div>
             <div className="row justify-content-center">
                 <div className="col-md-6">
 
                     <div className="card p-4">
-                        <h3 className="fw-bold text-center mb-1">Add Product</h3>
-                        <p className="text-muted text-center mb-4">
-                            Enter product details
-                        </p>
-
                         {message && (
                             <div className={`alert alert-${messageType} py-2`} role="alert">
                                 {message}

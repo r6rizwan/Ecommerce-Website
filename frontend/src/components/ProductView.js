@@ -36,8 +36,13 @@ const ProductView = () => {
     };
 
     return (
-        <section className="py-4">
-            <h2 className="fw-bold text-center mb-4">Products</h2>
+        <section className="section">
+            <div className="text-center mb-4">
+                <h2 className="section-title">Products</h2>
+                <p className="section-subtitle mx-auto">
+                    Manage inventory, pricing, and stock levels.
+                </p>
+            </div>
 
             <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between mb-3">
                 <input

@@ -38,9 +38,14 @@ const RegistrationView = () => {
     );
 
     return (
-        <section className="py-4">
+        <section className="section">
+            <div className="text-center mb-4">
+                <h2 className="section-title">Registered Users</h2>
+                <p className="section-subtitle mx-auto">
+                    Search and manage customer accounts.
+                </p>
+            </div>
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                <h2 className="fw-bold mb-0">Registered Users</h2>
 
                 <input
                     type="text"

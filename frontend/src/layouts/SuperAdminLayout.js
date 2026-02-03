@@ -10,9 +10,11 @@ const SuperAdminLayout = () => {
     }
 
     return (
-        <div className="container mt-4">
-            <Outlet />
-        </div>
+        <section className="section">
+            <div className="container">
+                <Outlet />
+            </div>
+        </section>
     );
 };
 

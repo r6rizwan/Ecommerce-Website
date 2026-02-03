@@ -53,16 +53,18 @@ const OTPScreen = () => {
   };
 
   return (
-    <section className="py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-4">
+    <section className="section">
+      <div className="container">
+        <div className="text-center mb-4">
+          <h2 className="section-title">OTP Verification</h2>
+          <p className="section-subtitle mx-auto">
+            Enter the OTP sent to your email to continue.
+          </p>
+        </div>
+        <div className="row justify-content-center">
+          <div className="col-md-4">
 
           <div className="card p-4">
-            <h3 className="fw-bold text-center mb-1">OTP Verification</h3>
-            <p className="text-muted text-center mb-4">
-              Enter the OTP sent to <strong>{email}</strong>
-            </p>
-
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">OTP</label>
@@ -107,6 +109,7 @@ const OTPScreen = () => {
             </div>
           </div>
 
+          </div>
         </div>
       </div>
     </section>

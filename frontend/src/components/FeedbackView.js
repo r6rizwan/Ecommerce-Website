@@ -42,25 +42,31 @@ const FeedbackView = () => {
     });
 
     return (
-        <section className="py-4">
-            <h2 className="fw-bold text-center mb-4">User Feedback</h2>
+        <section className="section">
+            <div className="container">
+                <div className="text-center mb-4">
+                    <h2 className="section-title">User Feedback</h2>
+                    <p className="section-subtitle mx-auto">
+                        Track product sentiment and service quality.
+                    </p>
+                </div>
 
-            <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between mb-3">
-                <input
-                    type="search"
-                    className="form-control"
-                    placeholder="Search by user, product, or comment..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                />
-                <span className="text-muted small">
-                    {filtered.length} results
-                </span>
-            </div>
+                <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between mb-3">
+                    <input
+                        type="search"
+                        className="form-control"
+                        placeholder="Search by user, product, or comment..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                    />
+                    <span className="text-muted small">
+                        {filtered.length} results
+                    </span>
+                </div>
 
-            <div className="card">
-                <div className="table-responsive">
-                    <table className="table align-middle mb-0">
+                <div className="card">
+                    <div className="table-responsive">
+                        <table className="table align-middle mb-0">
                         <thead className="table-light">
                             <tr>
                                 <th>#</th>
@@ -135,7 +141,8 @@ const FeedbackView = () => {
                                     </tr>
                                 ))}
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>

@@ -73,7 +73,7 @@ const AdminHome = () => {
   }, [reviewQuery, recentReviews]);
 
   return (
-    <section>
+    <section className="section">
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-2">
         <div>
           <h2 className="fw-bold mb-1">Dashboard Overview</h2>

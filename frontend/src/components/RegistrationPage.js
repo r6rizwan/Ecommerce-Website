@@ -46,16 +46,18 @@ const RegistrationPage = () => {
   };
 
   return (
-    <section className="py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-5">
+    <section className="section">
+      <div className="container">
+        <div className="text-center mb-4">
+          <h2 className="section-title">Create Account</h2>
+          <p className="section-subtitle mx-auto">
+            Join ShopSphere for faster checkout and order tracking.
+          </p>
+        </div>
+        <div className="row justify-content-center">
+          <div className="col-md-5">
 
           <div className="card p-4">
-            <h3 className="fw-bold text-center mb-1">Create Account</h3>
-            <p className="text-muted text-center mb-4">
-              Sign up to start shopping
-            </p>
-
             {errorMsg && (
               <div className="alert alert-danger py-2" role="alert">
                 {errorMsg}
@@ -192,6 +194,7 @@ const RegistrationPage = () => {
             </div>
           </div>
 
+          </div>
         </div>
       </div>
     </section>

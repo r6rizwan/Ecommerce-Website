@@ -85,10 +85,31 @@ const UserHome = () => {
     return data;
   }, [FilteredData, SortBy]);
 
-  const addToCart = async (pid) => {
+  const addToCart = async (product) => {
+    if (!user_id) {
+      const existing = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      const idx = existing.findIndex((i) => String(i.id) === String(product.id));
+      if (idx >= 0) {
+        existing[idx].qty += 1;
+        existing[idx].total = existing[idx].qty * Number(existing[idx].price || 0);
+      } else {
+        existing.push({
+          id: product.id,
+          product_name: product.product_name,
+          image: product.image,
+          price: Number(product.price || 0),
+          qty: 1,
+          total: Number(product.price || 0),
+        });
+      }
+      localStorage.setItem("guestCart", JSON.stringify(existing));
+      window.dispatchEvent(new Event("cart-update"));
+      return;
+    }
+
     try {
       const res = await fetch(
-        `http://localhost:3001/api/addtocart/${pid}`,
+        `http://localhost:3001/api/addtocart/${product.id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -130,13 +151,19 @@ const UserHome = () => {
     (PriceRange < MaxPrice ? 1 : 0);
 
   return (
-    <section className="py-4">
-      <h2 className="fw-bold mb-4 text-center">Latest Products</h2>
+    <section className="section">
+      <div className="container">
+        <div className="text-center mb-4">
+          <h2 className="section-title">All Products</h2>
+          <p className="section-subtitle mx-auto">
+            Compare prices, filter by category, and find the best deals fast.
+          </p>
+        </div>
 
       <div className="row">
         {/* Filters */}
         <div className="col-lg-3 mb-4 d-none d-lg-block">
-          <div className="card p-3 sticky-top" style={{ top: "90px" }}>
+          <div className="card p-3 sticky-top filter-card" style={{ top: "90px" }}>
             <h6 className="fw-bold mb-3">Filters</h6>
 
             <div className="mb-4">
@@ -184,7 +211,7 @@ const UserHome = () => {
 
         {/* Products */}
         <div className="col-lg-9">
-          <div className="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between mb-3">
+          <div className="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between mb-3 toolbar">
             <div className="flex-grow-1">
               <input
                 type="search"
@@ -257,7 +284,21 @@ const UserHome = () => {
             </div>
           )}
 
-          <div className="row g-4">
+          {Categories.length > 0 && (
+            <div className="category-strip mb-3">
+              {Categories.map((cat) => (
+                <button
+                  key={`strip-${cat}`}
+                  className="chip"
+                  onClick={() => handleCategoryChange(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="row g-3">
             {Loading && (
               <>
                 {Array.from({ length: 6 }).map((_, idx) => (
@@ -294,8 +335,8 @@ const UserHome = () => {
 
             {!Loading &&
               SortedData.map((product) => (
-              <div className="col-sm-6 col-md-4" key={product.id}>
-                <div className="card h-100">
+              <div className="col-sm-6 col-md-4 col-xl-3" key={product.id}>
+                <div className="product-card">
                   <img
                     src={`http://localhost:3001/uploads/${product.image}`}
                     alt={product.product_name}
@@ -306,18 +347,19 @@ const UserHome = () => {
                     }}
                   />
 
-                  <div className="card-body d-flex flex-column">
+                  <div className="product-card-body d-flex flex-column">
                     <span className="badge bg-light text-primary mb-2">
                       {product.category_name}
                     </span>
 
-                    <h6 className="fw-semibold text-truncate">
+                    <h6 className="fw-semibold text-truncate mb-1">
                       {product.product_name}
                     </h6>
 
-                    <p className="fw-bold text-primary mb-2">
-                      {formatPrice(product.price)}
-                    </p>
+                    <div className="price-row mb-2">
+                      <span className="price">{formatPrice(product.price)}</span>
+                      <span className="delivery-chip">Fast delivery</span>
+                    </div>
 
                     <p className="text-muted small text-truncate">
                       {product.description}
@@ -332,7 +374,7 @@ const UserHome = () => {
                       </button>
                       <button
                         className="btn btn-primary btn-sm flex-grow-1"
-                        onClick={() => addToCart(product.id)}
+                      onClick={() => addToCart(product)}
                       >
                         Add to Cart
                       </button>
@@ -413,6 +455,7 @@ const UserHome = () => {
             </button>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

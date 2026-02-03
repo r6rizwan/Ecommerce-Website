@@ -1,29 +1,37 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap");
+
 /* =========================
-   🎨 DESIGN TOKENS (LIGHT)
+   🎨 DESIGN TOKENS (MARKETPLACE HYBRID)
 ========================= */
 :root {
   /* Backgrounds */
-  --bg-page: #f8f9fa;
+  --bg-page: #f5f7fb;
   --bg-surface: #ffffff;
-  --bg-soft: #f1f5ff;
+  --bg-soft: #eef3ff;
+  --bg-accent: #fff4db;
 
   /* Text */
-  --text-primary: #212529;
-  --text-secondary: #495057;
-  --text-muted: #6c757d;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
 
   /* Borders */
-  --border-light: #e9ecef;
-  --border-muted: #dee2e6;
+  --border-light: #e2e8f0;
+  --border-muted: #cbd5f0;
 
   /* Accent */
-  --accent: #0d6efd;
-  --accent-soft: #e7efff;
+  --accent: #2a6df4;
+  --accent-2: #ff7a00;
+  --accent-soft: #e9f1ff;
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 12px 30px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.2);
+
+  /* Typography */
+  --font-sans: "Sora", "Segoe UI", sans-serif;
+  --font-display: "Sora", "Segoe UI", sans-serif;
 }
 
 /* =========================
@@ -35,9 +43,19 @@ body {
 }
 
 body {
-  background-color: var(--bg-page);
-  font-family: "Poppins", "Segoe UI", sans-serif;
+  background: var(--bg-page);
+  font-family: var(--font-sans);
   color: var(--text-primary);
+}
+
+h1,
+h2,
+h3,
+h4,
+.display-5,
+.display-6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.2px;
 }
 
 *:focus-visible {
@@ -121,13 +139,13 @@ main {
 }
 
 .navbar-search .form-control {
-  min-width: 280px;
+  min-width: 320px;
 }
 
 .cart-badge {
   position: absolute;
-  top: 2px;
-  right: -6px;
+  top: 0;
+  right: 2px;
   transform: translate(50%, -50%);
   background: var(--accent);
   color: #fff;
@@ -135,6 +153,35 @@ main {
   padding: 0.2rem 0.4rem;
   border-radius: 999px;
   line-height: 1;
+  border: 2px solid #fff;
+}
+
+.nav-item.position-relative .nav-link {
+  position: relative;
+  padding-right: 1.2rem;
+}
+
+/* =========================
+   🧭 Layout Utilities
+========================= */
+.page {
+  padding: 2rem 0 3rem;
+}
+
+.toolbar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-card {
+  background: linear-gradient(180deg, #fff 0%, #f8f2ec 100%);
+}
+
+.product-detail-card {
+  border-radius: 20px;
 }
 
 /* =========================
@@ -153,16 +200,16 @@ main {
    🧱 Cards
 ========================= */
 .card {
-  border-radius: 14px;
-  border: none;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
   background-color: var(--bg-surface);
-  box-shadow: var(--shadow-md);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .card-header,
@@ -198,9 +245,10 @@ main {
 ========================= */
 .form-control {
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border: 1px solid var(--border-muted);
   color: var(--text-primary);
+  background-color: #fff;
 }
 
 .form-control:focus {
@@ -236,11 +284,123 @@ main {
 }
 
 .btn-primary {
-  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.2);
+  background-color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 6px 16px rgba(42, 109, 244, 0.25);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 8px 22px rgba(13, 110, 253, 0.25);
+  background-color: #225ad1;
+  border-color: #225ad1;
+  box-shadow: 0 8px 22px rgba(42, 109, 244, 0.3);
+}
+
+.btn-outline-primary {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.section {
+  padding: 2.5rem 0;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  max-width: 620px;
+}
+
+.hero {
+  background: linear-gradient(135deg, #e9f1ff 0%, #ffffff 60%, #f6f9ff 100%);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+}
+
+.hero-title {
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.market-rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.market-rail::-webkit-scrollbar {
+  height: 6px;
+}
+
+.market-rail::-webkit-scrollbar-thumb {
+  background: #cbd5f0;
+  border-radius: 999px;
+}
+
+.category-tile {
+  min-width: 140px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.deal-card {
+  min-width: 220px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.deal-price {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.badge-soft {
+  background: var(--bg-accent);
+  color: var(--accent-2);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+}
+
+.bg-primary {
+  background-color: var(--accent) !important;
+}
+
+.text-primary {
+  color: var(--accent) !important;
+}
+
+.bg-primary-subtle {
+  background-color: var(--accent-soft) !important;
+}
+
+.bg-page {
+  background: var(--bg-page) !important;
 }
 
 /* =========================
@@ -573,6 +733,82 @@ main {
   width: 100%;
   background: #f8f9fa;
   object-fit: contain;
+}
+
+/* =========================
+   🛒 Marketplace
+========================= */
+.product-card {
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.product-card-body {
+  padding: 12px 14px 14px;
+}
+
+.price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-row .price {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.delivery-chip {
+  background: var(--bg-soft);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+}
+
+.buy-box {
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.buy-box .price {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.buy-box .stock {
+  color: #0f9d58;
+  font-weight: 600;
+}
+
+.category-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.category-strip .chip {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+.category-strip::-webkit-scrollbar {
+  height: 6px;
+}
+
+.category-strip::-webkit-scrollbar-thumb {
+  background: #cbd5f0;
+  border-radius: 999px;
 }
 
 /* =========================

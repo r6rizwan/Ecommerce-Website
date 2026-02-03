@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { setAdminToken } from './superAdmin/superAdminAuth';
 
 const NewLogin = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({ emailOrUsername: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -35,8 +36,33 @@ const NewLogin = () => {
         localStorage.setItem("userID", response.data.user_id);
         localStorage.setItem("isLoggedIn", "true");
 
+        const redirect = searchParams.get("redirect");
+
+        if (response.data.utype === "user") {
+          const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
+          if (guestCart.length > 0) {
+            for (const item of guestCart) {
+              const qty = Number(item.qty || 1);
+              for (let i = 0; i < qty; i += 1) {
+                await axios.post(
+                  `http://localhost:3001/api/addtocart/${item.id}`,
+                  { user_id: response.data.user_id },
+                  { headers: { "Content-Type": "application/json" } }
+                );
+              }
+            }
+            localStorage.removeItem("guestCart");
+          }
+        }
+
         window.dispatchEvent(new Event("app-storage"));
-        navigate(response.data.utype === "admin" ? "/adminhome" : "/userhome");
+        window.dispatchEvent(new Event("cart-update"));
+
+        if (redirect) {
+          navigate(redirect);
+        } else {
+          navigate(response.data.utype === "admin" ? "/adminhome" : "/userhome");
+        }
       } else {
         setErrorMsg(response.data.message || "Invalid credentials");
         setFormData((p) => ({ ...p, password: "" }));
@@ -50,16 +76,18 @@ const NewLogin = () => {
   };
 
   return (
-    <section className="py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-4">
+    <section className="section">
+      <div className="container">
+        <div className="text-center mb-4">
+          <h2 className="section-title">Welcome Back</h2>
+          <p className="section-subtitle mx-auto">
+            Log in to continue shopping and track your orders.
+          </p>
+        </div>
+        <div className="row justify-content-center">
+          <div className="col-md-4">
 
           <div className="card p-4">
-            <h3 className="fw-bold text-center mb-1">Welcome Back</h3>
-            <p className="text-muted text-center mb-4">
-              Login to continue shopping
-            </p>
-
             {errorMsg && (
               <div className="alert alert-danger py-2" role="alert">
                 {errorMsg}
@@ -139,6 +167,7 @@ const NewLogin = () => {
             </div>
           </div>
 
+          </div>
         </div>
       </div>
     </section>

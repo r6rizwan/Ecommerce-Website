@@ -42,7 +42,7 @@ const AdminLayout = () => {
     }, [location.pathname]);
 
     return (
-        <div className="d-flex min-vh-100 bg-light">
+        <div className="d-flex min-vh-100 bg-page">
             {/* Sidebar */}
             <aside
                 className={`bg-white border-end p-3 admin-sidebar ${sidebarOpen ? "d-block" : "d-none"

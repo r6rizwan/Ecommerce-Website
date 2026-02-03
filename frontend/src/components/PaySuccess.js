@@ -5,9 +5,10 @@ const PaySuccess = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-5">
+    <section className="section">
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-md-5">
 
           <div className="card p-5 text-center">
             <i className="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
@@ -38,6 +39,7 @@ const PaySuccess = () => {
             </div>
           </div>
 
+          </div>
         </div>
       </div>
     </section>

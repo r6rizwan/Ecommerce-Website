@@ -14,7 +14,7 @@ const SuperAdminDashboard = () => {
     };
 
     return (
-        <>
+        <section className="section">
             <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-2">
                 <div>
                     <h3 className="fw-bold mb-1">Super Admin Dashboard</h3>
@@ -41,7 +41,7 @@ const SuperAdminDashboard = () => {
                     <AdminList refresh={refresh} />
                 </div>
             </div>
-        </>
+        </section>
     );
 };
 

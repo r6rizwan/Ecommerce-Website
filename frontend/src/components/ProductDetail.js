@@ -33,10 +33,31 @@ const ProductDetail = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const addToCart = async (pid) => {
+  const addToCart = async (item) => {
+    if (!user_id) {
+      const existing = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      const idx = existing.findIndex((i) => String(i.id) === String(item.id));
+      if (idx >= 0) {
+        existing[idx].qty += 1;
+        existing[idx].total = existing[idx].qty * Number(existing[idx].price || 0);
+      } else {
+        existing.push({
+          id: item.id,
+          product_name: item.product_name,
+          image: item.image,
+          price: Number(item.price || 0),
+          qty: 1,
+          total: Number(item.price || 0),
+        });
+      }
+      localStorage.setItem("guestCart", JSON.stringify(existing));
+      window.dispatchEvent(new Event("cart-update"));
+      return;
+    }
+
     try {
       const res = await fetch(
-        `http://localhost:3001/api/addtocart/${pid}`,
+        `http://localhost:3001/api/addtocart/${item.id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -56,7 +77,7 @@ const ProductDetail = () => {
 
   if (loading) {
     return (
-      <section className="py-5">
+      <section className="section">
         <div className="container" style={{ maxWidth: "1100px" }}>
           <div className="card p-4">
             <div className="row g-4 align-items-center">
@@ -99,8 +120,8 @@ const ProductDetail = () => {
           Back
         </button>
 
-        <div className="card p-4">
-          <div className="row g-4 align-items-center">
+        <div className="card p-4 product-detail-card">
+          <div className="row g-4">
             <div className="col-lg-6">
               <div className="product-gallery">
                 <img
@@ -125,37 +146,49 @@ const ProductDetail = () => {
                 {product.description || "No description available."}
               </p>
 
-              <div className="d-flex gap-2 flex-wrap mb-4">
-                <button
-                  className="btn btn-primary px-4"
-                  onClick={() => addToCart(product.id)}
+              <div className="row g-3">
+                <div className="col-md-7">
+                  <div className="product-meta">
+                    <div className="meta-item">
+                      <span className="label">Unit</span>
+                      <span className="value">{product.uom || "N/A"}</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="label">Stock</span>
+                      <span className="value">{product.stock ?? "N/A"}</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="label">Quantity</span>
+                      <span className="value">{product.qty ?? "N/A"}</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="label">Delivery</span>
+                      <span className="value">2-4 business days</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-5">
+                  <div className="buy-box">
+                    <div className="price mb-2">₹{Number(product.price).toFixed(2)}</div>
+                    <div className="stock mb-2">
+                      {Number(product.stock) > 0 ? "In stock" : "Limited stock"}
+                    </div>
+                    <div className="text-muted small mb-3">
+                      Free delivery on orders above ₹999
+                    </div>
+                    <button
+                      className="btn btn-primary w-100 mb-2"
+                  onClick={() => addToCart(product)}
                 >
                   Add to Cart
                 </button>
-                <button
-                  className="btn btn-outline-primary px-4"
-                  onClick={() => navigate("/usercart")}
-                >
-                  Go to Cart
-                </button>
-              </div>
-
-              <div className="product-meta">
-                <div className="meta-item">
-                  <span className="label">Unit</span>
-                  <span className="value">{product.uom || "N/A"}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="label">Stock</span>
-                  <span className="value">{product.stock ?? "N/A"}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="label">Quantity</span>
-                  <span className="value">{product.qty ?? "N/A"}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="label">Delivery</span>
-                  <span className="value">2-4 business days</span>
+                    <button
+                      className="btn btn-outline-primary w-100"
+                      onClick={() => navigate("/usercart")}
+                    >
+                      Go to Cart
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
