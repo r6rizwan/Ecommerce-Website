@@ -172,14 +172,16 @@ const Navbar = () => {
                   <li className="nav-item">
                     <NavLink to="/aboutus" className="nav-link">About</NavLink>
                   </li>
-                  <li className="nav-item position-relative">
-                    <NavLink to="/usercart" className="nav-link">
-                      <i className="bi bi-cart3 fs-5"></i>
-                      {cartCount > 0 && (
-                        <span className="cart-badge">
-                          {cartCount}
-                        </span>
-                      )}
+                  <li className="nav-item cart-nav">
+                    <NavLink to="/usercart" className="nav-link cart-link">
+                      <span className="cart-icon">
+                        <i className="bi bi-cart3 fs-5"></i>
+                        {cartCount > 0 && (
+                          <span className="cart-badge">
+                            {cartCount}
+                          </span>
+                        )}
+                      </span>
                     </NavLink>
                   </li>
                 </>
@@ -188,9 +190,6 @@ const Navbar = () => {
               {/* GUEST MENU */}
               {!isLoggedIn && (
                 <>
-                  <li className="nav-item">
-                    <NavLink to="/aboutus" className="nav-link">About</NavLink>
-                  </li>
                   <li className="nav-item">
                     <NavLink to="/login" className="nav-link">Login</NavLink>
                   </li>

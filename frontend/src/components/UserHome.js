@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 
 const UserHome = () => {
   const [ProductData, setProductData] = useState([]);
@@ -14,6 +15,7 @@ const UserHome = () => {
   const user_id = localStorage.getItem("userID");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/getproduct")
@@ -33,6 +35,34 @@ const UserHome = () => {
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+
+  const loadCart = useCallback(async () => {
+    if (!user_id) {
+      const guest = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      setCartItems(guest);
+      return;
+    }
+    try {
+      const res = await axios.get(
+        `http://localhost:3001/api/getcartitems/${user_id}`
+      );
+      setCartItems(res.data || []);
+    } catch (err) {
+      console.error("Error loading cart items:", err);
+    }
+  }, [user_id]);
+
+  useEffect(() => {
+    loadCart();
+    const handleCartUpdate = () => loadCart();
+    window.addEventListener("cart-update", handleCartUpdate);
+    return () => window.removeEventListener("cart-update", handleCartUpdate);
+  }, [loadCart]);
+
+  const cartIds = useMemo(
+    () => new Set(cartItems.map((i) => String(i.pid ?? i.id))),
+    [cartItems]
+  );
 
   useEffect(() => {
     const q = searchParams.get("q");
@@ -372,12 +402,21 @@ const UserHome = () => {
                       >
                         View Details
                       </button>
-                      <button
-                        className="btn btn-primary btn-sm flex-grow-1"
-                      onClick={() => addToCart(product)}
-                      >
-                        Add to Cart
-                      </button>
+                      {cartIds.has(String(product.id)) ? (
+                        <button
+                          className="btn btn-outline-secondary btn-sm flex-grow-1"
+                          onClick={() => navigate("/usercart")}
+                        >
+                          In Cart
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-primary btn-sm flex-grow-1"
+                          onClick={() => addToCart(product)}
+                        >
+                          Add to Cart
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

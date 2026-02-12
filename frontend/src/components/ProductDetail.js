@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -10,6 +11,7 @@ const ProductDetail = () => {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/getproduct")
@@ -32,6 +34,34 @@ const ProductDetail = () => {
       .catch(() => setError("Could not load product details."))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const loadCart = useCallback(async () => {
+    if (!user_id) {
+      const guest = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      setCartItems(guest);
+      return;
+    }
+    try {
+      const res = await axios.get(
+        `http://localhost:3001/api/getcartitems/${user_id}`
+      );
+      setCartItems(res.data || []);
+    } catch (err) {
+      console.error("Error loading cart items:", err);
+    }
+  }, [user_id]);
+
+  useEffect(() => {
+    loadCart();
+    const handleCartUpdate = () => loadCart();
+    window.addEventListener("cart-update", handleCartUpdate);
+    return () => window.removeEventListener("cart-update", handleCartUpdate);
+  }, [loadCart]);
+
+  const inCart = useMemo(() => {
+    if (!product) return false;
+    return cartItems.some((i) => String(i.pid ?? i.id) === String(product.id));
+  }, [cartItems, product]);
 
   const addToCart = async (item) => {
     if (!user_id) {
@@ -176,12 +206,21 @@ const ProductDetail = () => {
                     <div className="text-muted small mb-3">
                       Free delivery on orders above ₹999
                     </div>
-                    <button
-                      className="btn btn-primary w-100 mb-2"
-                  onClick={() => addToCart(product)}
-                >
-                  Add to Cart
-                </button>
+                    {inCart ? (
+                      <button
+                        className="btn btn-outline-secondary w-100 mb-2"
+                        onClick={() => navigate("/usercart")}
+                      >
+                        In Cart
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-primary w-100 mb-2"
+                        onClick={() => addToCart(product)}
+                      >
+                        Add to Cart
+                      </button>
+                    )}
                     <button
                       className="btn btn-outline-primary w-100"
                       onClick={() => navigate("/usercart")}

@@ -7,12 +7,13 @@ const PayBill = () => {
     const navigate = useNavigate();
 
     const uid = localStorage.getItem("userID");
-    const price = searchParams.get("price");
+    const total = searchParams.get("total");
+    const payableAmount = Math.round(Number(total || 0) * 100);
 
     const paymentHandler = async (e) => {
         e.preventDefault();
 
-        const razorpayAmount = 1 * 100; // ₹1 test
+        const razorpayAmount = payableAmount;
 
         const options = {
             key: "rzp_test_RcpYJahrNYiMkG",
@@ -20,11 +21,11 @@ const PayBill = () => {
             amount: razorpayAmount,
             currency: "INR",
             name: "E-Commerce App",
-            description: "Test Payment (₹1)",
+            description: "Order Payment",
             handler: async function (response) {
                 try {
                     await axios.post(
-                        `http://localhost:3001/api/paybill/${response.razorpay_payment_id}/${price}`,
+                        `http://localhost:3001/api/paybill/${response.razorpay_payment_id}/${total}`,
                         {
                             payment_id: response.razorpay_payment_id,
                             uid: uid,
@@ -59,7 +60,7 @@ const PayBill = () => {
                     <div className="card p-4 text-center">
                         <h4 className="fw-bold mb-2">Confirm Payment</h4>
                         <p className="text-muted mb-4">
-                            Order Amount: <strong>₹{price}</strong>
+                            Order Amount: <strong>₹{total}</strong>
                         </p>
 
                         <button
@@ -70,7 +71,7 @@ const PayBill = () => {
                         </button>
 
                         <small className="text-muted d-block mt-3">
-                            * Test mode: ₹1 will be charged
+                            You will be charged the order total shown above.
                         </small>
                     </div>
 

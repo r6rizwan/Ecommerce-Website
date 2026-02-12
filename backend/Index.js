@@ -914,6 +914,7 @@ app.get('/api/getcartitems/:user_id', (req, res) => {
     const sql = `
     SELECT 
       co.id, 
+      co.pid,
       p.product_name, 
       p.image,
       co.price, 

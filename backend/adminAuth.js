@@ -145,6 +145,53 @@ router.get('/api/super-admin/admins', verifySuperAdminToken, (req, res) => {
 
 /*
 ====================================================
+RESET ADMIN PASSWORD (SUPER ADMIN ONLY)
+====================================================
+*/
+
+router.post('/api/super-admin/admin/:id/reset-password', verifySuperAdminToken, async (req, res) => {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({
+            success: false,
+            message: 'New password must be at least 6 characters'
+        });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        const sqlUpdate = `
+            UPDATE login
+            SET password = ?
+            WHERE id = ? AND utype = 'admin'
+        `;
+
+        req.app.get('db').query(sqlUpdate, [hashedPassword, id], (err, result) => {
+            if (err) {
+                console.error('Error resetting admin password:', err);
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ success: false, message: 'Admin not found' });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Admin password reset successfully'
+            });
+        });
+    } catch (err) {
+        console.error('Hashing error:', err);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+/*
+====================================================
 DELETE ADMIN (SUPER ADMIN ONLY)
 ====================================================
 */

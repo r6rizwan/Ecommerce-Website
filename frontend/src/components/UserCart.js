@@ -77,9 +77,9 @@ const UserCart = () => {
   };
 
   const totalPrice = cartItems.reduce((sum, item) => sum + item.total, 0);
-  const taxEstimate = totalPrice * 0.05;
-  const shippingEstimate = totalPrice > 0 ? 49 : 0;
-  const grandTotal = totalPrice + taxEstimate + shippingEstimate;
+  const gstEstimate = totalPrice * 0.18;
+  const deliveryCharges = totalPrice > 0 ? 49 : 0;
+  const grandTotal = totalPrice + gstEstimate + deliveryCharges;
 
   if (loading) {
     return (
@@ -227,13 +227,13 @@ const UserCart = () => {
                     <span>₹{totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span className="text-muted">Shipping</span>
-                    <span>₹{shippingEstimate.toFixed(2)}</span>
-                  </div>
-                  <div className="d-flex justify-content-between mb-3">
-                    <span className="text-muted">Tax (est.)</span>
-                    <span>₹{taxEstimate.toFixed(2)}</span>
-                  </div>
+                  <span className="text-muted">Delivery Charges</span>
+                  <span>₹{deliveryCharges.toFixed(2)}</span>
+                </div>
+                <div className="d-flex justify-content-between mb-3">
+                  <span className="text-muted">GST (est.)</span>
+                  <span>₹{gstEstimate.toFixed(2)}</span>
+                </div>
 
                   <div className="input-group mb-3">
                     <input
@@ -254,13 +254,13 @@ const UserCart = () => {
                   </div>
 
                 <button
-                  className="btn btn-primary btn-lg w-100"
-                  onClick={() =>
-                    user_id
-                      ? (window.location.href = `/paybill?uid=${user_id}&price=${totalPrice.toFixed(2)}`)
+                    className="btn btn-primary btn-lg w-100"
+                    onClick={() =>
+                      user_id
+                      ? (window.location.href = `/paybill?uid=${user_id}&total=${grandTotal.toFixed(2)}`)
                       : (window.location.href = "/login?redirect=/usercart")
-                  }
-                >
+                    }
+                  >
                   {user_id ? "Checkout" : "Sign in to checkout"}
                 </button>
                 </div>
