@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
-import ConfirmDialog from "../components/ConfirmDialog";
+import ConfirmDialog from "../components/shared/ConfirmDialog";
 
 const AdminLayout = () => {
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -42,10 +42,10 @@ const AdminLayout = () => {
     }, [location.pathname]);
 
     return (
-        <div className="d-flex min-vh-100 bg-page">
+        <div className="d-flex min-vh-100 bg-page admin-shell">
             {/* Sidebar */}
             <aside
-                className={`bg-white border-end p-3 admin-sidebar ${sidebarOpen ? "d-block" : "d-none"
+                className={`bg-white border-end p-3 admin-sidebar ${sidebarOpen ? "d-block admin-sidebar-mobile-open" : "d-none"
                     } d-md-block`}
                 style={{ width: "260px" }}
             >
@@ -146,16 +146,6 @@ const AdminLayout = () => {
                         )}
                     </li>
 
-                    <li className="nav-item mt-2">
-                        <NavLink
-                            to="/registerview"
-                            className="nav-link"
-                            onClick={closeDropdown}
-                        >
-                            <i className="bi bi-people me-2"></i> Users
-                        </NavLink>
-                    </li>
-
                     <li className="nav-item mt-auto">
                         <button
                             className="btn btn-outline-danger w-100 mt-4"
@@ -178,8 +168,15 @@ const AdminLayout = () => {
                 <i className="bi bi-list"></i>
             </button>
 
+            {sidebarOpen && (
+                <div
+                    className="admin-sidebar-backdrop d-md-none"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
             {/* Content */}
-            <main className="flex-grow-1 p-4">
+            <main className="flex-grow-1 p-4 admin-main-v2">
                 <Outlet />
             </main>
             <ConfirmDialog

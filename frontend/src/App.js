@@ -9,29 +9,27 @@ import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 
 // Components
-import Home from './components/Home';
-import AboutUsPage from './components/AboutUsPage';
-// import ContactUsPage from './components/ContactUsPage';
-import NewLogin from './components/NewLogin';
-import RegistrationPage from './components/RegistrationPage';
-import ForgotPassword from './components/ForgotPassword';
-import OtpScreen from './components/OtpScreen';
-import ResetPassword from './components/ResetPassword';
-import UserHome from './components/UserHome';
-import ProductDetail from './components/ProductDetail';
-import UserOrders from './components/UserOrders';
-import UserCart from './components/UserCart';
-import FeedbackPage from './components/FeedbackPage';
-import PayBill from './components/PayBill';
-import PaySuccess from './components/PaySuccess';
-import AdminHome from './components/AdminHome';
-import AdminOrders from './components/AdminOrders';
-import CategoryPage from './components/CategoryPage';
-import CategoryView from './components/CategoryView';
-import ProductAddPage from './components/ProductAddPage';
-import ProductView from './components/ProductView';
-import RegistrationView from './components/RegistrationView';
-import FeedbackView from './components/FeedbackView';
+import Home from './components/public/Home';
+import AboutUsPage from './components/public/AboutUsPage';
+import NewLogin from './components/auth/NewLogin';
+import RegistrationPage from './components/auth/RegistrationPage';
+import ForgotPassword from './components/auth/ForgotPassword';
+import OtpScreen from './components/auth/OtpScreen';
+import ResetPassword from './components/auth/ResetPassword';
+import UserHome from './components/user/UserHome';
+import ProductDetail from './components/user/ProductDetail';
+import UserOrders from './components/user/UserOrders';
+import UserCart from './components/user/UserCart';
+import FeedbackPage from './components/user/FeedbackPage';
+import PayBill from './components/user/PayBill';
+import PaySuccess from './components/user/PaySuccess';
+import AdminHome from './components/admin/AdminHome';
+import AdminOrders from './components/admin/AdminOrders';
+import CategoryPage from './components/admin/CategoryPage';
+import CategoryView from './components/admin/CategoryView';
+import ProductAddPage from './components/admin/ProductAddPage';
+import ProductView from './components/admin/ProductView';
+import FeedbackView from './components/admin/FeedbackView';
 import SuperAdminLayout from './layouts/SuperAdminLayout';
 import SuperAdminLogin from './components/superAdmin/SuperAdminLogin';
 import SuperAdminDashboard from './components/superAdmin/SuperAdminDashboard';
@@ -44,7 +42,6 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/aboutus" element={<AboutUsPage />} />
-          {/* <Route path="/contactus" element={<ContactUsPage />} /> */}
           <Route path="/login" element={<NewLogin />} />
           <Route path="/register" element={<RegistrationPage />} />
           <Route path="/forgotpassword" element={<ForgotPassword />} />
@@ -67,7 +64,6 @@ function App() {
           <Route path="/categoryview" element={<CategoryView />} />
           <Route path="/addproduct" element={<ProductAddPage />} />
           <Route path="/productview" element={<ProductView />} />
-          <Route path="/registerview" element={<RegistrationView />} />
           <Route path="/feedbackview" element={<FeedbackView />} />
         </Route>
 

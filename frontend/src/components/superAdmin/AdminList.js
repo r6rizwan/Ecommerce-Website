@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { superAdminAuthHeader } from './superAdminAuth';
+import ConfirmDialog from '../shared/ConfirmDialog';
+import MessageDialog from '../shared/MessageDialog';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 const AdminList = ({ refresh }) => {
     const [admins, setAdmins] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -8,13 +11,14 @@ const AdminList = ({ refresh }) => {
     const [showResetModal, setShowResetModal] = useState(false);
     const [resetAdminId, setResetAdminId] = useState(null);
     const [newPassword, setNewPassword] = useState('');
-    const [resetMessage, setResetMessage] = useState('');
     const [resetLoading, setResetLoading] = useState(false);
+    const [confirmDeleteAdminId, setConfirmDeleteAdminId] = useState(null);
+    const [dialog, setDialog] = useState({ show: false, title: '', message: '' });
 
     const loadAdmins = async () => {
         setLoading(true);
         const res = await fetch(
-            'http://localhost:3001/api/super-admin/admins',
+            `${API_BASE_URL}/api/super-admin/admins`,
             { headers: superAdminAuthHeader() }
         );
         const data = await res.json();
@@ -27,20 +31,27 @@ const AdminList = ({ refresh }) => {
     }, [refresh]);
 
     const deleteAdmin = async (id) => {
-        if (!window.confirm('Delete this admin?')) return;
+        setConfirmDeleteAdminId(id);
+    };
 
-        await fetch(
-            `http://localhost:3001/api/super-admin/admin/${id}`,
-            { method: 'DELETE', headers: superAdminAuthHeader() }
-        );
-
-        loadAdmins();
+    const confirmDeleteAdmin = async () => {
+        if (!confirmDeleteAdminId) return;
+        try {
+            await fetch(
+                `${API_BASE_URL}/api/super-admin/admin/${confirmDeleteAdminId}`,
+                { method: 'DELETE', headers: superAdminAuthHeader() }
+            );
+            loadAdmins();
+        } catch (err) {
+            setDialog({ show: true, title: 'Delete Failed', message: 'Unable to delete admin.' });
+        } finally {
+            setConfirmDeleteAdminId(null);
+        }
     };
 
     const openResetModal = (id) => {
         setResetAdminId(id);
         setNewPassword('');
-        setResetMessage('');
         setShowResetModal(true);
     };
 
@@ -48,21 +59,19 @@ const AdminList = ({ refresh }) => {
         setShowResetModal(false);
         setResetAdminId(null);
         setNewPassword('');
-        setResetMessage('');
     };
 
     const resetAdminPassword = async (e) => {
         e.preventDefault();
         if (!newPassword || newPassword.length < 6) {
-            setResetMessage('Password must be at least 6 characters.');
+            setDialog({ show: true, title: 'Invalid Password', message: 'Password must be at least 6 characters.' });
             return;
         }
 
         setResetLoading(true);
-        setResetMessage('');
 
         const res = await fetch(
-            `http://localhost:3001/api/super-admin/admin/${resetAdminId}/reset-password`,
+            `${API_BASE_URL}/api/super-admin/admin/${resetAdminId}/reset-password`,
             {
                 method: 'POST',
                 headers: superAdminAuthHeader(),
@@ -72,9 +81,10 @@ const AdminList = ({ refresh }) => {
 
         const data = await res.json();
         if (!data.success) {
-            setResetMessage(data.message || 'Failed to reset password');
+            setDialog({ show: true, title: 'Reset Failed', message: data.message || 'Failed to reset password' });
         } else {
-            setResetMessage('Password reset successfully');
+            setDialog({ show: true, title: 'Success', message: 'Password reset successfully' });
+            closeResetModal();
         }
         setResetLoading(false);
     };
@@ -89,10 +99,10 @@ const AdminList = ({ refresh }) => {
 
     return (
         <>
-            <div className="card p-4 h-100">
+            <div className="card p-4 h-100 admin-panel-v2">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="fw-bold mb-0">Admins</h5>
-                    <span className="text-muted small">{filtered.length} users</span>
+                    <span className="chip">{filtered.length} users</span>
                 </div>
 
                 <input
@@ -102,8 +112,8 @@ const AdminList = ({ refresh }) => {
                     onChange={(e) => setQuery(e.target.value)}
                 />
 
-                <div className="table-responsive">
-                    <table className="table align-middle mb-0">
+                <div className="table-responsive admin-grid-card-v3">
+                    <table className="table align-middle mb-0 admin-grid-table-v3">
                         <thead className="table-light">
                             <tr>
                                 <th>ID</th>
@@ -166,9 +176,6 @@ const AdminList = ({ refresh }) => {
                         <p className="text-muted small mb-3">
                             Set a new password for this admin (min 6 characters).
                         </p>
-                        {resetMessage && (
-                            <div className="alert alert-info py-2">{resetMessage}</div>
-                        )}
                         <form onSubmit={resetAdminPassword}>
                             <input
                                 type="password"
@@ -189,6 +196,19 @@ const AdminList = ({ refresh }) => {
                     </div>
                 </div>
             )}
+            <ConfirmDialog
+                show={!!confirmDeleteAdminId}
+                title="Delete Admin?"
+                message="This admin account will be removed."
+                onCancel={() => setConfirmDeleteAdminId(null)}
+                onConfirm={confirmDeleteAdmin}
+            />
+            <MessageDialog
+                show={dialog.show}
+                title={dialog.title}
+                message={dialog.message}
+                onClose={() => setDialog({ show: false, title: '', message: '' })}
+            />
         </>
     );
 };

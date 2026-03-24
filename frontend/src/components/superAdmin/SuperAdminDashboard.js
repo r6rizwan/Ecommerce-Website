@@ -15,7 +15,7 @@ const SuperAdminDashboard = () => {
 
     return (
         <section className="section">
-            <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-2">
+            <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-2 admin-hero-v2">
                 <div>
                     <h3 className="fw-bold mb-1">Super Admin Dashboard</h3>
                     <div className="text-muted">Manage admins and access controls.</div>
@@ -31,6 +31,12 @@ const SuperAdminDashboard = () => {
                         Logout
                     </button>
                 </div>
+            </div>
+
+            <div className="superadmin-kpi-v3 mb-4">
+                <span className="chip">Access Control</span>
+                <span className="chip">Admin Credentials</span>
+                <span className="chip">Password Reset</span>
             </div>
 
             <div className="row g-4">

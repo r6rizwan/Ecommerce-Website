@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { superAdminAuthHeader } from './superAdminAuth';
+import MessageDialog from '../shared/MessageDialog';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 const CreateAdminForm = ({ onCreated }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -17,7 +19,7 @@ const CreateAdminForm = ({ onCreated }) => {
 
         try {
             const res = await fetch(
-                'http://localhost:3001/api/super-admin/create-admin',
+                `${API_BASE_URL}/api/super-admin/create-admin`,
                 {
                     method: 'POST',
                     headers: superAdminAuthHeader(),
@@ -46,11 +48,10 @@ const CreateAdminForm = ({ onCreated }) => {
     };
 
     return (
-        <div className="card p-4 h-100">
+        <div className="card p-4 h-100 admin-form-card-v2">
+            <span className="chip mb-2">Role Provisioning</span>
             <h5 className="fw-bold mb-2">Create Admin</h5>
             <p className="text-muted mb-3">Add a new admin user with credentials.</p>
-
-            {msg && <div className={`alert alert-${msgType} py-2`}>{msg}</div>}
 
             <form onSubmit={createAdmin}>
                 <label className="form-label">Admin Email</label>
@@ -85,6 +86,16 @@ const CreateAdminForm = ({ onCreated }) => {
                     {loading ? 'Creating...' : 'Create Admin'}
                 </button>
             </form>
+
+            <div className="small text-muted mt-3">
+                Password should be at least 6 characters and not reused across accounts.
+            </div>
+            <MessageDialog
+                show={!!msg}
+                title={msgType === 'success' ? 'Success' : 'Admin Creation Failed'}
+                message={msg}
+                onClose={() => setMsg('')}
+            />
         </div>
     );
 };

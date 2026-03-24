@@ -1,157 +1,84 @@
-# 📦 E-Commerce Website (React + Node.js + MySQL + Razorpay)
+# ShopSphere Ecommerce (v1)
 
-A full-stack e-commerce platform built using **React**, **Node.js**, **Express**, **MySQL**, and **Razorpay payment gateway**.
+Production-focused ecommerce demo with user, admin, and super-admin roles.
 
-Includes user authentication, product management, cart system, orders, and admin dashboard.
+## Tech Stack
+- Frontend: React, React Router, Bootstrap, Axios
+- Backend: Node.js, Express, MySQL, JWT, Multer, Nodemailer
+- Payments: Razorpay
 
----
+## Current Scope (v1)
+- User auth (register/login/forgot OTP/reset)
+- Product listing/detail/search/filter
+- Guest cart + merge into user cart on login
+- Checkout + payment flow
+- User orders + tracking dialog
+- Feedback submission
+- Admin: dashboard, orders, products, categories, feedback
+- Super admin: create admin, delete admin, reset admin password
 
-## 🚀 Features
+## Role-Based Component Structure
+`frontend/src/components` is now organized by role:
+- `auth/`
+- `user/`
+- `admin/`
+- `superAdmin/`
+- `public/`
+- `shared/`
 
-### 🛍️ User Features
-- Browse all products  
-- View product details  
-- Category-based filtering  
-- Add to cart  
-- Checkout & online payment via Razorpay  
-- Order history  
-- Login / Signup / Reset Password  
-- Contact & Feedback form  
-- Responsive UI  
+## Privacy Changes
+Removed user-list management from admin:
+- Removed frontend register view
+- Removed backend APIs:
+  - `GET /api/getregister`
+  - `DELETE /api/deleteregister/:id`
 
-### 🛠️ Admin Features
-- Add new products  
-- Manage products & categories  
-- View all user orders  
-- Manage feedback  
-- Admin dashboard layout  
+## Local Setup
 
----
-
-## 🧱 Tech Stack
-
-### **Frontend**
-- React.js  
-- React Router  
-- CSS  
-- Axios / Fetch  
-- Razorpay Web Integration  
-
-### **Backend**
-- Node.js  
-- Express.js  
-- MySQL  
-- Multer (Image uploads)  
-- Nodemailer
-
----
-
-## 🗂️ Project Structure
-
-### **Frontend (`/src`)**
-```
-src/
-├── components/
-├── layouts/
-├── pages/
-├── App.js
-├── index.js
-└── styles/
-```
-
-### **Backend**
-```
-backend/
-├── index.js
-├── uploads/
-└── node_modules
-```
-
----
-
-## ⚙️ Setup Instructions
-
-### **1️⃣ Clone the Repository**
-```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
-```
-
----
-
-## **2️⃣ Backend Setup**
-
-### Install dependencies
+### Backend
 ```bash
 cd backend
 npm install
+node Index.js
 ```
 
-### Start backend
-```bash
-node index.js
-```
-
----
-
-## **3️⃣ Frontend Setup**
-
-### Install dependencies
+### Frontend
 ```bash
 cd frontend
 npm install
-```
-
-### Start frontend
-```bash
 npm start
 ```
 
-Frontend → http://localhost:3000  
-Backend → http://localhost:3001  
+### Production build
+```bash
+cd frontend
+npm run build
+```
 
----
+## Environment Variables
+Create/update `backend/.env` with:
+- `EMAIL_USER`
+- `EMAIL_PASS`
+- `SUPER_ADMIN_EMAIL`
+- `SUPER_ADMIN_PASSWORD`
+- `SUPER_ADMIN_JWT_SECRET`
+- `ADMIN_JWT_SECRET`
+- `PAYMENT_PROVIDER` (`razorpay` or `mock`)
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `RAZORPAY_MAX_AMOUNT_PAISE`
 
-## 📦 API Endpoints (Summary)
+Create/update `frontend/.env` with:
+- `REACT_APP_API_BASE_URL`
+- `REACT_APP_RAZORPAY_KEY_ID`
+- `REACT_APP_PAYMENT_PROVIDER` (`razorpay` or `mock`)
 
-### **Products**
-- `GET /api/products`
-- `POST /api/addproduct`
-- `GET /api/product/:id`
+Rotate secrets before deployment.
 
-### **Users**
-- `POST /api/register`
-- `POST /api/login`
-- `POST /api/reset-password`
+## Database
+Backend expects MySQL database: `ecommerce`.
 
-### **Cart & Orders**
-- `POST /api/addtocart`
-- `GET /api/usercart/:id`
-- `POST /api/createorder`
-
-### **Admin**
-- `POST /api/addproduct`
-- `GET /api/admin/orders`
-
----
-
-## 🧪 Future Improvements
-- JWT authentication  
-- Product filtering & sorting  
-- Wishlist  
-- Product reviews & ratings  
-- Order status tracking  
-- Cloud image uploads (Cloudinary, S3)  
-- Admin analytics dashboard  
-- Better UI using Material UI or Tailwind  
-
----
-
-## 🤝 Contributing
-Contributions are welcome!  
-Feel free to open issues or submit pull requests.
-
----
-
-## 📝 License
-MIT License
+## Known Limits (v1)
+- Tracking event dates are currently estimated from order date
+- No websocket/push updates for order status changes
+- Frontend API base URL env support is added, but some older local assumptions may still need cleanup before deployment hardening
