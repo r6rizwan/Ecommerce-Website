@@ -3,7 +3,7 @@ import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import MessageDialog from "../shared/MessageDialog";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const PAYMENT_PROVIDER = (process.env.REACT_APP_PAYMENT_PROVIDER || "razorpay").toLowerCase();
 
 const PayBill = () => {

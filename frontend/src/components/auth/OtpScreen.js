@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MessageDialog from "../shared/MessageDialog";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const OTPScreen = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);

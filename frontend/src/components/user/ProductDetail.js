@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import MessageDialog from "../shared/MessageDialog";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const ProductImageOrName = ({ image, name, className, fallbackClassName }) => {
   const [showName, setShowName] = useState(!(image && String(image).trim()));

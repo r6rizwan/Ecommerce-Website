@@ -4,7 +4,7 @@ import axios from "axios";
 import { setAdminToken } from '../superAdmin/superAdminAuth';
 import MessageDialog from "../shared/MessageDialog";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const NewLogin = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

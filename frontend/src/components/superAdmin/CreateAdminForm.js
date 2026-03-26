@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { superAdminAuthHeader } from './superAdminAuth';
 import MessageDialog from '../shared/MessageDialog';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const CreateAdminForm = ({ onCreated }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');

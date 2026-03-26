@@ -18,9 +18,25 @@ const queryAsync = (conn, sql, params = []) =>
 
 const toPaise = (rupees) => Math.round(Number(rupees || 0) * 100);
 
+const buildOrderGroupId = () => {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const datePart = `${yyyy}${mm}${dd}`;
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let suffix = "";
+
+  for (let i = 0; i < 6; i += 1) {
+    suffix += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  return `ORD-${datePart}-${suffix}`;
+};
+
 const persistSuccessfulPayment = async ({ conn, uid, amountRupees, paymentReference, providerOrderId = null }) => {
   const paymentOrderId = Date.now();
-  const orderGroupId = `ORD_${paymentOrderId}_${uid}`;
+  const orderGroupId = buildOrderGroupId();
 
   const sqlInsertPayment = `
     INSERT INTO payment (user_id, order_id, payment_reference, amount, payment_date)

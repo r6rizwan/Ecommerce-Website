@@ -14,18 +14,24 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
-const port = 3001;
+const port = Number(process.env.PORT || 5000);
+const allowedOrigin = process.env.ALLOWED_ORIGIN;
 
 app.use(express.json());
-app.use(cors());
+app.use(
+    cors({
+        origin: allowedOrigin,
+        credentials: true
+    })
+);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const conn = mysql.createConnection({
-    host: 'localhost',
-    port: 3306,
-    database: 'ecommerce',
-    user: 'root',
-    password: ''
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD
 });
 
 conn.connect((err) => {

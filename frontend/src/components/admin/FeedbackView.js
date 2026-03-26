@@ -3,7 +3,7 @@ import { adminAuthHeader } from "../superAdmin/superAdminAuth";
 import ConfirmDialog from "../shared/ConfirmDialog";
 import MessageDialog from "../shared/MessageDialog";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const FeedbackView = () => {
     const [feedbackData, setFeedbackData] = useState([]);
     const [loading, setLoading] = useState(true);

@@ -3,7 +3,7 @@ import { superAdminAuthHeader } from './superAdminAuth';
 import ConfirmDialog from '../shared/ConfirmDialog';
 import MessageDialog from '../shared/MessageDialog';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const AdminList = ({ refresh }) => {
     const [admins, setAdmins] = useState([]);
     const [loading, setLoading] = useState(true);

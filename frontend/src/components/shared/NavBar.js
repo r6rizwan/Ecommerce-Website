@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import ConfirmDialog from "./ConfirmDialog";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();

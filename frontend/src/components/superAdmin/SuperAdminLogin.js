@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { setSuperAdminToken } from './superAdminAuth';
 import MessageDialog from '../shared/MessageDialog';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 const SuperAdminLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
