@@ -1,0 +1,92 @@
+CREATE DATABASE IF NOT EXISTS ecommerce;
+USE ecommerce;
+
+CREATE TABLE IF NOT EXISTS login (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  utype ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS register (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  gender VARCHAR(50),
+  city VARCHAR(100),
+  address TEXT,
+  pincode VARCHAR(20),
+  email VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS otp (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  otp VARCHAR(10) NOT NULL,
+  otp_expiry DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS category (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  category_name VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS product (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  category_name VARCHAR(255) NOT NULL,
+  product_name VARCHAR(255) NOT NULL,
+  qty INT NOT NULL DEFAULT 0,
+  uom VARCHAR(50) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  stock INT NOT NULL DEFAULT 0,
+  image VARCHAR(255) DEFAULT NULL,
+  description TEXT,
+  delivery_days_min INT NOT NULL DEFAULT 4,
+  delivery_days_max INT NOT NULL DEFAULT 6,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS feedback (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pid INT NOT NULL,
+  user_id INT NOT NULL,
+  about_product TEXT NOT NULL,
+  about_service TEXT NOT NULL,
+  comments TEXT NOT NULL,
+  star_rating INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_feedback_per_user_product (pid, user_id),
+  CONSTRAINT fk_feedback_product FOREIGN KEY (pid) REFERENCES product(id) ON DELETE CASCADE,
+  CONSTRAINT fk_feedback_user FOREIGN KEY (user_id) REFERENCES register(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS customerOrders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_group_id VARCHAR(64) DEFAULT NULL,
+  user_id INT NOT NULL,
+  pid INT NOT NULL,
+  qty INT NOT NULL DEFAULT 1,
+  price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  order_status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+  payment_status VARCHAR(50) NOT NULL DEFAULT 'Unpaid',
+  CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES register(id) ON DELETE CASCADE,
+  CONSTRAINT fk_orders_product FOREIGN KEY (pid) REFERENCES product(id) ON DELETE CASCADE,
+  INDEX idx_orders_group (order_group_id),
+  INDEX idx_orders_user_status (user_id, order_status)
+);
+
+CREATE TABLE IF NOT EXISTS payment (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  order_id VARCHAR(64) NOT NULL,
+  payment_reference VARCHAR(255) NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_payment_user FOREIGN KEY (user_id) REFERENCES register(id) ON DELETE CASCADE,
+  INDEX idx_payment_order_id (order_id)
+);
